@@ -7,9 +7,11 @@ import { imageConversion } from "./actions/image_conversion"
 function ImagePreview({
   processedDataURL,
   currentBlockSize,
+  isMobile
 }: {
   processedDataURL: string
   currentBlockSize: number
+  isMobile: boolean
 }) {
   const [zoomLevel, setZoomLevel] = useState(1),
     [colorInfo, setColorInfo] = useState({ show: false, x: 0, y: 0, text: '' }),
@@ -19,8 +21,6 @@ function ImagePreview({
     [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 }),
     [highlightedCell, setHighlightedCell] = useState<{ x: number, y: number } | null>(null),
     [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null)
-
-  const isMobile = typeof window !== 'undefined' && 'ontouchstart' in window
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -503,6 +503,14 @@ function SelectColors({
   )
 }
 
+function initialColorSelectionState() {
+  const state: { [key: string]: boolean } = {}
+  SELECTABLE_COLORS.forEach(color => {
+    state[color.name] = true
+  })
+  return state
+}
+
 export default function Page() {
   const [blockSize, setBlockSize] = useState(4),
     [ditherChecked, setDitherChecked] = useState(false),
@@ -511,13 +519,7 @@ export default function Page() {
     [processing, setProcessing] = useState(false),
     [processedDataURL, setProcessedDataURL] = useState<string | null>(null),
     [showPreview, setShowPreview] = useState(false),
-    [selectedColors, setSelectedColors] = useState(() => {
-      const initialState: { [key: string]: boolean } = {}
-      SELECTABLE_COLORS.forEach(color => {
-        initialState[color.name] = true
-      })
-      return initialState
-    }),
+    [selectedColors, setSelectedColors] = useState(initialColorSelectionState),
     [isSettingsOpen, setSettingsOpen] = useState(false)
 
   const isMobile = typeof window !== 'undefined' && 'ontouchstart' in window
@@ -582,10 +584,20 @@ export default function Page() {
   return (
     <div className="app-container">
       <div className="main-content">
-        {(showPreview && processedDataURL) ? (
+        {processing ? (
+          <div className="processing">
+            <div className="loader">
+              <div className="loader-dot"></div>
+              <div className="loader-dot"></div>
+              <div className="loader-dot"></div>
+            </div>
+            <p>処理中...</p>
+          </div>
+        ) : (showPreview && processedDataURL) ? (
           <ImagePreview
             processedDataURL={processedDataURL}
             currentBlockSize={currentBlockSize.current}
+            isMobile={isMobile}
           />
         ) : (
           <h1>Wplace Image Conversion</h1>
@@ -668,17 +680,6 @@ export default function Page() {
           onClick={processImage}
           type="button"
         >画像を処理</button>
-
-        {processing && (
-          <div className="processing">
-            <div className="loader">
-              <div className="loader-dot"></div>
-              <div className="loader-dot"></div>
-              <div className="loader-dot"></div>
-            </div>
-            <p>処理中...</p>
-          </div>
-        )}
       </div>
     </div>
   )
