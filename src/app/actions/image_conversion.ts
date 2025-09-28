@@ -1,5 +1,10 @@
+"use server"
+
+// Use explicit import for Canvas types to avoid conflict with DOM types
+import { createCanvas, loadImage, ImageData as CanvasImageData, Canvas } from "canvas"
+
 /** 画像サイズをブロックサイズで割り切れるように調整 */
-export function adjustImageSize(originalWidth: number, originalHeight: number, blockSize: number) {
+function adjustImageSize(originalWidth: number, originalHeight: number, blockSize: number) {
     const adjustedWidth = Math.floor(originalWidth / blockSize) * blockSize
     const adjustedHeight = Math.floor(originalHeight / blockSize) * blockSize
 
@@ -10,58 +15,25 @@ export function adjustImageSize(originalWidth: number, originalHeight: number, b
     }
 }
 
-/** 画像をピクセル化する */
-export function pixelateImage(canvas: HTMLCanvasElement, blockSize: number) {
-    if (blockSize <= 1) return // ブロックサイズが1以下の場合はピクセル化しない
-
-    const ctx = canvas.getContext('2d')
-    const originalWidth = canvas.width
-    const originalHeight = canvas.height
-
-    // 小さいサイズにリサイズ
-    const smallWidth = Math.max(1, Math.floor(originalWidth / blockSize))
-    const smallHeight = Math.max(1, Math.floor(originalHeight / blockSize))
-
-    const tempCanvas = document.createElement('canvas')
-    tempCanvas.width = smallWidth
-    tempCanvas.height = smallHeight
-    const tempCtx = tempCanvas.getContext('2d')
-    if (!ctx || !tempCtx) return
-
-    // 最近傍補間でリサイズ
-    tempCtx.imageSmoothingEnabled = false
-    tempCtx.drawImage(canvas, 0, 0, smallWidth, smallHeight)
-
-    // 元のサイズに戻す
-    ctx.imageSmoothingEnabled = false
-    ctx.clearRect(0, 0, originalWidth, originalHeight)
-    ctx.drawImage(tempCanvas, 0, 0, originalWidth, originalHeight)
-
-    return canvas
-}
-
 /** 透明部分を完全に透明化 */
-export function fullTransparent(imageData: ImageData) {
+function fullTransparent(imageData: CanvasImageData) {
     const data = imageData.data
-
     for (let i = 0; i < data.length; i += 4) {
-        const a = data[i + 3]
-
-        if (a < 255) {
-            data[i + 3] = 0 // 完全に透明にする
+        if (data[i + 3] < 255) {
+            data[i + 3] = 0 // Make fully transparent
         }
     }
 }
 
-/** 最近傍パレット色を見つける */
+/**
+ * Finds the nearest color in the palette. (Server-side compatible)
+ */
 function findNearestPaletteColor(r: number, g: number, b: number, palette: number[][]) {
     let minDistance = Infinity
     let nearestColor = palette[0]
 
     for (const color of palette) {
-        const distance = (r - color[0]) ** 2 +
-            (g - color[1]) ** 2 +
-            (b - color[2]) ** 2
+        const distance = (r - color[0]) ** 2 + (g - color[1]) ** 2 + (b - color[2]) ** 2
         if (distance < minDistance) {
             minDistance = distance
             nearestColor = color
@@ -70,8 +42,11 @@ function findNearestPaletteColor(r: number, g: number, b: number, palette: numbe
     return nearestColor
 }
 
-/** Floyd-Steinbergディザリング */
-export function floydSteinbergDither(imageData: ImageData, palette: number[][]) {
+/**
+ * Applies Floyd-Steinberg dithering. (Server-side compatible)
+ * @returns A new ImageData object.
+ */
+function floydSteinbergDither(imageData: CanvasImageData, palette: number[][]): CanvasImageData {
     const data = new Uint8ClampedArray(imageData.data)
     const width = imageData.width
     const height = imageData.height
@@ -96,7 +71,7 @@ export function floydSteinbergDither(imageData: ImageData, palette: number[][]) 
             const errG = oldG - newG
             const errB = oldB - newB
 
-            // エラー拡散
+            // Error diffusion
             if (x + 1 < width) {
                 const rightIdx = (y * width + x + 1) * 4
                 data[rightIdx] = Math.max(0, Math.min(255, data[rightIdx] + errR * 7 / 16))
@@ -126,12 +101,16 @@ export function floydSteinbergDither(imageData: ImageData, palette: number[][]) 
             }
         }
     }
-
-    return new ImageData(data, width, height)
+    
+    const newImageData = new CanvasImageData(data, width, height);
+    return newImageData;
 }
 
-/** 最近傍量子化 */
-export function quantizeToNearestColor(imageData: ImageData, palette: number[][]) {
+/**
+ * Quantizes image to the nearest colors in the palette. (Server-side compatible)
+ * @returns The modified ImageData object.
+ */
+function quantizeToNearestColor(imageData: CanvasImageData, palette: number[][]): CanvasImageData {
     const data = imageData.data
 
     for (let i = 0; i < data.length; i += 4) {
@@ -144,4 +123,80 @@ export function quantizeToNearestColor(imageData: ImageData, palette: number[][]
     }
 
     return imageData
+}
+
+/**
+ * Pixelates an image on a node-canvas. (Server-side compatible)
+ */
+function pixelateImage(canvas: Canvas, blockSize: number) {
+    if (blockSize <= 1) return
+
+    const ctx = canvas.getContext('2d')
+    const originalWidth = canvas.width
+    const originalHeight = canvas.height
+
+    const smallWidth = Math.max(1, Math.floor(originalWidth / blockSize))
+    const smallHeight = Math.max(1, Math.floor(originalHeight / blockSize))
+
+    const tempCanvas = createCanvas(smallWidth, smallHeight)
+    const tempCtx = tempCanvas.getContext('2d')
+
+    // Use 'nearest' resampling for nearest-neighbor
+    tempCtx.patternQuality = 'nearest';
+    tempCtx.drawImage(canvas, 0, 0, smallWidth, smallHeight)
+
+    // Draw the pixelated version back onto the original canvas
+    ctx.patternQuality = 'nearest';
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, originalWidth, originalHeight)
+    ctx.drawImage(tempCanvas, 0, 0, originalWidth, originalHeight)
+}
+
+/**
+ * Converts an image by resizing, pixelating, and applying color quantization or dithering.
+ */
+export async function imageConversion(
+    imageSrc: string,
+    palette: number[][],
+    blockSize: number,
+    isDither: boolean,
+    isNoPixelate: boolean
+): Promise<string> {
+    const image = await loadImage(imageSrc)
+    const originalWidth = image.width
+    const originalHeight = image.height
+
+    // Adjust image size to be divisible by the block size
+    const adjustedSize = adjustImageSize(originalWidth, originalHeight, blockSize)
+
+    const canvas = createCanvas(adjustedSize.width, adjustedSize.height)
+    const ctx = canvas.getContext("2d")
+
+    // Draw the image onto the canvas, cropping from the center
+    const offsetX = (originalWidth - adjustedSize.width) / 2
+    const offsetY = (originalHeight - adjustedSize.height) / 2
+    ctx.drawImage(image, offsetX, offsetY, adjustedSize.width, adjustedSize.height, 0, 0, adjustedSize.width, adjustedSize.height)
+
+    // Pixelate if required
+    if (!isNoPixelate) {
+        pixelateImage(canvas, blockSize)
+    }
+
+    // Get image data for quantization/dithering
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+
+    // Make semi-transparent pixels fully transparent
+    fullTransparent(imageData)
+
+    let processedImageData: CanvasImageData
+
+    if (isDither) {
+        processedImageData = floydSteinbergDither(imageData, palette)
+    } else {
+        processedImageData = quantizeToNearestColor(imageData, palette)
+    }
+
+    ctx.putImageData(processedImageData, 0, 0)
+
+    return canvas.toDataURL("image/png")
 }

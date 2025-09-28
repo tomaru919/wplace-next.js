@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
-import { adjustImageSize, pixelateImage, floydSteinbergDither, quantizeToNearestColor, fullTransparent } from "@/lib/functions"
 import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
+import { imageConversion } from "./actions/image_conversion"
 
 function ImagePreview({
-  processedCanvas,
+  processedDataURL,
   currentBlockSize,
 }: {
-  processedCanvas: HTMLCanvasElement
+  processedDataURL: string
   currentBlockSize: number
 }) {
   const [zoomLevel, setZoomLevel] = useState(1),
@@ -17,12 +17,29 @@ function ImagePreview({
     [dragStart, setDragStart] = useState({ x: 0, y: 0 }),
     [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 }),
     [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 }),
-    [highlightedCell, setHighlightedCell] = useState<{ x: number, y: number } | null>(null)
+    [highlightedCell, setHighlightedCell] = useState<{ x: number, y: number } | null>(null),
+    [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null)
 
   const isMobile = typeof window !== 'undefined' && 'ontouchstart' in window
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+
+  // Load the processed data URL into a canvas element
+  useEffect(() => {
+    if (!processedDataURL) return;
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+      setProcessedCanvas(canvas);
+    };
+    img.src = processedDataURL;
+  }, [processedDataURL]);
+
 
   /** グリッド描画 */
   function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, blockSize: number) {
@@ -362,6 +379,15 @@ function ImagePreview({
     }
   }, [processedCanvas])
 
+  if (!processedCanvas) {
+    return (
+      <div className="preview-container">
+        <h4>処理後画像</h4>
+        <div className="loader">...Loading</div>
+      </div>
+    )
+  }
+
   return (
     <div className="preview-container">
       <h4>処理後画像 <span>({processedCanvas.width / currentBlockSize}x{processedCanvas.height / currentBlockSize})</span></h4>
@@ -483,7 +509,7 @@ export default function Page() {
     [noPixelateChecked, setNoPixelateChecked] = useState(false),
     [currentImage, setImageFile] = useState<HTMLImageElement | null>(null),
     [processing, setProcessing] = useState(false),
-    [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null),
+    [processedDataURL, setProcessedDataURL] = useState<string | null>(null),
     [showPreview, setShowPreview] = useState(false),
     [selectedColors, setSelectedColors] = useState(() => {
       const initialState: { [key: string]: boolean } = {}
@@ -522,84 +548,43 @@ export default function Page() {
 
     setProcessing(true)
 
-    setTimeout(() => {
-      // 最終的なパレットを作成
-      const finalPalette = [...DEFAULT_COLORS]
-      SELECTABLE_COLORS.forEach(color => {
-        if (selectedColors[color.name]) {
-          finalPalette.push(color)
-        }
-      })
-
-      // HEX to RGB
-      const finalPaletteRGB = finalPalette.map(c => {
-        const r = parseInt(c.hex.slice(1, 3), 16)
-        const g = parseInt(c.hex.slice(3, 5), 16)
-        const b = parseInt(c.hex.slice(5, 7), 16)
-        return [r, g, b]
-      })
-
-      const canvas = document.createElement("canvas")
-      const ctx = canvas.getContext("2d")
-      if (!ctx) {
-        setProcessing(false)
-        return
+    // 最終的なパレットを作成
+    const finalPalette = [...DEFAULT_COLORS]
+    SELECTABLE_COLORS.forEach(color => {
+      if (selectedColors[color.name]) {
+        finalPalette.push(color)
       }
+    })
 
-      currentBlockSize.current = ditherChecked || noPixelateChecked ? 1 : blockSize
+    // HEX to RGB
+    const finalPaletteRGB = finalPalette.map(c => {
+      const r = parseInt(c.hex.slice(1, 3), 16)
+      const g = parseInt(c.hex.slice(3, 5), 16)
+      const b = parseInt(c.hex.slice(5, 7), 16)
+      return [r, g, b]
+    })
 
-      // 画像サイズをブロックサイズで割り切れるように調整
-      const originalWidth = currentImage.naturalWidth
-      const originalHeight = currentImage.naturalHeight
-      const adjustedSize = adjustImageSize(originalWidth, originalHeight, currentBlockSize.current)
+    currentBlockSize.current = ditherChecked || noPixelateChecked ? 1 : blockSize
 
-      canvas.width = adjustedSize.width
-      canvas.height = adjustedSize.height
+    const dataUrl = await imageConversion(currentImage.src, finalPaletteRGB, currentBlockSize.current, ditherChecked, noPixelateChecked)
 
-      // 調整されたサイズに画像を描画（中央配置でクロップ）
-      const offsetX = (originalWidth - adjustedSize.width) / 2
-      const offsetY = (originalHeight - adjustedSize.height) / 2
+    // 処理済みDataURLを保存
+    setProcessedDataURL(dataUrl)
 
-      ctx.drawImage(currentImage, offsetX, offsetY, adjustedSize.width, adjustedSize.height, 0, 0, adjustedSize.width, adjustedSize.height)
+    // プレビュー表示
+    setShowPreview(true)
+    setProcessing(false)
 
-      // ピクセル化（オプション）
-      if (!noPixelateChecked) {
-        pixelateImage(canvas, currentBlockSize.current)
-      }
-
-      // パレット量子化
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-
-      fullTransparent(imageData)
-
-      let processedImageData: ImageData
-
-      if (ditherChecked) {
-        processedImageData = floydSteinbergDither(imageData, finalPaletteRGB)
-      } else {
-        processedImageData = quantizeToNearestColor(imageData, finalPaletteRGB)
-      }
-
-      ctx.putImageData(processedImageData, 0, 0)
-
-      // 処理済みキャンバスを保存
-      setProcessedCanvas(canvas)
-
-      // プレビュー表示
-      setShowPreview(true)
-      setProcessing(false)
-
-      // モバイル時は処理後に設定パネルを閉じる
-      if (isMobile) setSettingsOpen(false)
-    }, 100)
+    // モバイル時は処理後に設定パネルを閉じる
+    if (isMobile) setSettingsOpen(false)
   }
 
   return (
     <div className="app-container">
       <div className="main-content">
-        {(showPreview && processedCanvas) ? (
+        {(showPreview && processedDataURL) ? (
           <ImagePreview
-            processedCanvas={processedCanvas}
+            processedDataURL={processedDataURL}
             currentBlockSize={currentBlockSize.current}
           />
         ) : (
