@@ -1,7 +1,6 @@
 "use server"
 
-// Use explicit import for Canvas types to avoid conflict with DOM types
-import { createCanvas, loadImage, ImageData as CanvasImageData, Canvas } from "canvas"
+import { createCanvas, loadImage, ImageData as CanvasImageData, type Canvas } from "canvas"
 
 /** 画像サイズをブロックサイズで割り切れるように調整 */
 function adjustImageSize(originalWidth: number, originalHeight: number, blockSize: number) {
@@ -102,8 +101,8 @@ function floydSteinbergDither(imageData: CanvasImageData, palette: number[][]): 
         }
     }
     
-    const newImageData = new CanvasImageData(data, width, height);
-    return newImageData;
+    const newImageData = new CanvasImageData(data, width, height)
+    return newImageData
 }
 
 /**
@@ -142,12 +141,12 @@ function pixelateImage(canvas: Canvas, blockSize: number) {
     const tempCtx = tempCanvas.getContext('2d')
 
     // Use 'nearest' resampling for nearest-neighbor
-    tempCtx.patternQuality = 'nearest';
+    tempCtx.patternQuality = 'nearest'
     tempCtx.drawImage(canvas, 0, 0, smallWidth, smallHeight)
 
     // Draw the pixelated version back onto the original canvas
-    ctx.patternQuality = 'nearest';
-    ctx.imageSmoothingEnabled = false;
+    ctx.patternQuality = 'nearest'
+    ctx.imageSmoothingEnabled = false
     ctx.clearRect(0, 0, originalWidth, originalHeight)
     ctx.drawImage(tempCanvas, 0, 0, originalWidth, originalHeight)
 }

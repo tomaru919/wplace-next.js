@@ -27,18 +27,18 @@ function ImagePreview({
 
   // Load the processed data URL into a canvas element
   useEffect(() => {
-    if (!processedDataURL) return;
-    const img = new window.Image();
+    if (!processedDataURL) return
+    const img = new window.Image()
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(img, 0, 0);
-      setProcessedCanvas(canvas);
-    };
-    img.src = processedDataURL;
-  }, [processedDataURL]);
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(img, 0, 0)
+      setProcessedCanvas(canvas)
+    }
+    img.src = processedDataURL
+  }, [processedDataURL])
 
 
   /** グリッド描画 */
