@@ -5,11 +5,11 @@ import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette
 import { imageConversion } from "./actions/image_conversion"
 
 function ImagePreview({
-  processedDataURL,
+  processedCanvas,
   currentBlockSize,
   isMobile
 }: {
-  processedDataURL: string
+  processedCanvas: HTMLCanvasElement
   currentBlockSize: number
   isMobile: boolean
 }) {
@@ -19,27 +19,26 @@ function ImagePreview({
     [dragStart, setDragStart] = useState({ x: 0, y: 0 }),
     [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 }),
     [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 }),
-    [highlightedCell, setHighlightedCell] = useState<{ x: number, y: number } | null>(null),
-    [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null)
+    [highlightedCell, setHighlightedCell] = useState<{ x: number, y: number } | null>(null)
+  // [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   // Load the processed data URL into a canvas element
-  useEffect(() => {
-    if (!processedDataURL) return
-    const img = new window.Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d')
-      ctx?.drawImage(img, 0, 0)
-      setProcessedCanvas(canvas)
-    }
-    img.src = processedDataURL
-  }, [processedDataURL])
-
+  // useEffect(() => {
+  //   if (!processedDataURL) return
+  //   const img = new window.Image()
+  //   img.onload = () => {
+  //     const canvas = document.createElement('canvas')
+  //     canvas.width = img.width
+  //     canvas.height = img.height
+  //     const ctx = canvas.getContext('2d')
+  //     ctx?.drawImage(img, 0, 0)
+  //     setProcessedCanvas(canvas)
+  //   }
+  //   img.src = processedDataURL
+  // }, [processedDataURL])
 
   /** グリッド描画 */
   function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, blockSize: number) {
@@ -379,14 +378,18 @@ function ImagePreview({
     }
   }, [processedCanvas])
 
-  if (!processedCanvas) {
-    return (
-      <div className="preview-container">
-        <h4>処理後画像</h4>
-        <div className="loader">...Loading</div>
-      </div>
-    )
-  }
+  // if (!processedCanvas) {
+  //   return (
+  //     <div className="processing">
+  //       <div className="loader">
+  //         <div className="loader-dot"></div>
+  //         <div className="loader-dot"></div>
+  //         <div className="loader-dot"></div>
+  //       </div>
+  //       <p>処理中...</p>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="preview-container">
@@ -517,8 +520,7 @@ export default function Page() {
     [noPixelateChecked, setNoPixelateChecked] = useState(false),
     [currentImage, setImageFile] = useState<HTMLImageElement | null>(null),
     [processing, setProcessing] = useState(false),
-    [processedDataURL, setProcessedDataURL] = useState<string | null>(null),
-    [showPreview, setShowPreview] = useState(false),
+    [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null),
     [selectedColors, setSelectedColors] = useState(initialColorSelectionState),
     [isSettingsOpen, setSettingsOpen] = useState(false)
 
@@ -528,8 +530,8 @@ export default function Page() {
 
   /** 画像ファイル選択時の処理 */
   function handleFileSelect(file: File) {
-    if (!file.type.startsWith("image/")) {
-      alert("画像ファイルを選択してください")
+    if (!file.type.startsWith("image/png") && !file.type.startsWith("image/jpeg") && !file.type.startsWith("image/jpg")) {
+      alert("画像ファイル（PNG, JPG）を選択してください。")
       return
     }
 
@@ -568,13 +570,30 @@ export default function Page() {
 
     currentBlockSize.current = ditherChecked || noPixelateChecked ? 1 : blockSize
 
-    const dataUrl = await imageConversion(currentImage.src, finalPaletteRGB, currentBlockSize.current, ditherChecked, noPixelateChecked)
+    try {
+      const dataUrl = await imageConversion(currentImage.src, finalPaletteRGB, currentBlockSize.current, ditherChecked, noPixelateChecked)
 
-    // 処理済みDataURLを保存
-    setProcessedDataURL(dataUrl)
+      // UI更新のために少し待つ
+      setTimeout(() => {
+        const img = new window.Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0)
+  
+          setProcessedCanvas(canvas)
+        }
+        img.src = dataUrl
+      }, 100)
+    } catch (error) {
+      setProcessedCanvas(null)
+      setImageFile(null)
+      console.error("Image processing error:", error)
+      alert("画像の処理中にエラーが発生しました。")
+    }
 
-    // プレビュー表示
-    setShowPreview(true)
     setProcessing(false)
 
     // モバイル時は処理後に設定パネルを閉じる
@@ -593,9 +612,9 @@ export default function Page() {
             </div>
             <p>処理中...</p>
           </div>
-        ) : (showPreview && processedDataURL) ? (
+        ) : processedCanvas ? (
           <ImagePreview
-            processedDataURL={processedDataURL}
+            processedCanvas={processedCanvas}
             currentBlockSize={currentBlockSize.current}
             isMobile={isMobile}
           />
