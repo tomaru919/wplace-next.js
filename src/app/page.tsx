@@ -501,8 +501,8 @@ export default function Page() {
 
   /** 画像ファイル選択時の処理 */
   function handleFileSelect(file: File) {
-    if (!file.type.startsWith("image/png") && !file.type.startsWith("image/jpeg") && !file.type.startsWith("image/jpg")) {
-      alert("画像ファイル（PNG, JPG）を選択してください。")
+    if (!file.type.startsWith("image/")) {
+      alert("画像ファイルを選択してください")
       return
     }
 

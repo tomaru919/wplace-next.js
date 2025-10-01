@@ -1,6 +1,12 @@
 "use server"
 
-import { createCanvas, loadImage, ImageData as CanvasImageData, type Canvas } from "canvas"
+import sharp from "sharp"
+
+interface ImageData {
+    data: Buffer | Uint8ClampedArray
+    width: number
+    height: number
+}
 
 /** 画像サイズをブロックサイズで割り切れるように調整 */
 function adjustImageSize(originalWidth: number, originalHeight: number, blockSize: number) {
@@ -15,7 +21,7 @@ function adjustImageSize(originalWidth: number, originalHeight: number, blockSiz
 }
 
 /** 透明部分を完全に透明化 */
-function fullTransparent(imageData: CanvasImageData) {
+function fullTransparent(imageData: ImageData) {
     const data = imageData.data
     for (let i = 0; i < data.length; i += 4) {
         if (data[i + 3] < 255) {
@@ -45,7 +51,7 @@ function findNearestPaletteColor(r: number, g: number, b: number, palette: numbe
  * Applies Floyd-Steinberg dithering. (Server-side compatible)
  * @returns A new ImageData object.
  */
-function floydSteinbergDither(imageData: CanvasImageData, palette: number[][]): CanvasImageData {
+function floydSteinbergDither(imageData: ImageData, palette: number[][]): ImageData {
     const data = new Uint8ClampedArray(imageData.data)
     const width = imageData.width
     const height = imageData.height
@@ -101,7 +107,7 @@ function floydSteinbergDither(imageData: CanvasImageData, palette: number[][]): 
         }
     }
     
-    const newImageData = new CanvasImageData(data, width, height)
+    const newImageData: ImageData = { data: data, width, height }
     return newImageData
 }
 
@@ -109,7 +115,7 @@ function floydSteinbergDither(imageData: CanvasImageData, palette: number[][]): 
  * Quantizes image to the nearest colors in the palette. (Server-side compatible)
  * @returns The modified ImageData object.
  */
-function quantizeToNearestColor(imageData: CanvasImageData, palette: number[][]): CanvasImageData {
+function quantizeToNearestColor(imageData: ImageData, palette: number[][]): ImageData {
     const data = imageData.data
 
     for (let i = 0; i < data.length; i += 4) {
@@ -125,33 +131,6 @@ function quantizeToNearestColor(imageData: CanvasImageData, palette: number[][])
 }
 
 /**
- * Pixelates an image on a node-canvas. (Server-side compatible)
- */
-function pixelateImage(canvas: Canvas, blockSize: number) {
-    if (blockSize <= 1) return
-
-    const ctx = canvas.getContext('2d')
-    const originalWidth = canvas.width
-    const originalHeight = canvas.height
-
-    const smallWidth = Math.max(1, Math.floor(originalWidth / blockSize))
-    const smallHeight = Math.max(1, Math.floor(originalHeight / blockSize))
-
-    const tempCanvas = createCanvas(smallWidth, smallHeight)
-    const tempCtx = tempCanvas.getContext('2d')
-
-    // Use 'nearest' resampling for nearest-neighbor
-    tempCtx.patternQuality = 'nearest'
-    tempCtx.drawImage(canvas, 0, 0, smallWidth, smallHeight)
-
-    // Draw the pixelated version back onto the original canvas
-    ctx.patternQuality = 'nearest'
-    ctx.imageSmoothingEnabled = false
-    ctx.clearRect(0, 0, originalWidth, originalHeight)
-    ctx.drawImage(tempCanvas, 0, 0, originalWidth, originalHeight)
-}
-
-/**
  * Converts an image by resizing, pixelating, and applying color quantization or dithering.
  */
 export async function imageConversion(
@@ -161,33 +140,45 @@ export async function imageConversion(
     isDither: boolean,
     isNoPixelate: boolean
 ): Promise<string> {
-    const image = await loadImage(imageSrc)
-    const originalWidth = image.width
-    const originalHeight = image.height
+    const imageBuffer = Buffer.from(imageSrc.split(',')[1], 'base64')
+    const image = sharp(imageBuffer)
+    const metadata = await image.metadata()
+
+    const originalWidth = metadata.width || 0
+    const originalHeight = metadata.height || 0
 
     // Adjust image size to be divisible by the block size
     const adjustedSize = adjustImageSize(originalWidth, originalHeight, blockSize)
 
-    const canvas = createCanvas(adjustedSize.width, adjustedSize.height)
-    const ctx = canvas.getContext("2d")
-
-    // Draw the image onto the canvas, cropping from the center
-    const offsetX = (originalWidth - adjustedSize.width) / 2
-    const offsetY = (originalHeight - adjustedSize.height) / 2
-    ctx.drawImage(image, offsetX, offsetY, adjustedSize.width, adjustedSize.height, 0, 0, adjustedSize.width, adjustedSize.height)
+    let sharpInstance = image.resize(adjustedSize.width, adjustedSize.height, {
+        fit: 'cover',
+        position: 'center'
+    })
 
     // Pixelate if required
     if (!isNoPixelate) {
-        pixelateImage(canvas, blockSize)
+        const smallWidth = Math.max(1, Math.floor(adjustedSize.width / blockSize))
+        const smallHeight = Math.max(1, Math.floor(adjustedSize.height / blockSize))
+
+        // Resize down and get an intermediate buffer to break the optimization chain
+        const smallImageBuffer = await sharpInstance
+            .resize(smallWidth, smallHeight, { kernel: 'nearest' })
+            .toBuffer()
+
+        // Create a new sharp instance from the small buffer and resize back up
+        sharpInstance = sharp(smallImageBuffer)
+            .resize(adjustedSize.width, adjustedSize.height, { kernel: 'nearest' })
     }
 
     // Get image data for quantization/dithering
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const { data, info } = await sharpInstance.ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+
+    const imageData: ImageData = { data, width: info.width, height: info.height }
 
     // Make semi-transparent pixels fully transparent
     fullTransparent(imageData)
 
-    let processedImageData: CanvasImageData
+    let processedImageData: ImageData
 
     if (isDither) {
         processedImageData = floydSteinbergDither(imageData, palette)
@@ -195,7 +186,13 @@ export async function imageConversion(
         processedImageData = quantizeToNearestColor(imageData, palette)
     }
 
-    ctx.putImageData(processedImageData, 0, 0)
+    const finalImageBuffer = await sharp(processedImageData.data, {
+        raw: {
+            width: processedImageData.width,
+            height: processedImageData.height,
+            channels: 4
+        }
+    }).png().toBuffer()
 
-    return canvas.toDataURL("image/png")
+    return `data:image/png;base64,${finalImageBuffer.toString('base64')}`
 }
