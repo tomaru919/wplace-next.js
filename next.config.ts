@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "4mb"
     },
-    serverComponentsExternalPackages: ["sharp"]
   }
 };
 
