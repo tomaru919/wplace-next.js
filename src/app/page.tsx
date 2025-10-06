@@ -1,32 +1,49 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
-import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
+import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  COLOR_NAME_MAP,
+  DEFAULT_COLORS,
+  SELECTABLE_COLORS,
+} from "@/lib/palette"
 import { imageConversion } from "./actions/image_conversion"
 
 function ImagePreview({
   processedCanvas,
   currentBlockSize,
-  isMobile
+  isMobile,
 }: {
   processedCanvas: HTMLCanvasElement
   currentBlockSize: number
   isMobile: boolean
 }) {
   const [zoomLevel, setZoomLevel] = useState(1),
-    [colorInfo, setColorInfo] = useState({ show: false, x: 0, y: 0, text: '' }),
+    [colorInfo, setColorInfo] = useState({
+      show: false,
+      x: 0,
+      y: 0,
+      text: "",
+    }),
     [isDragging, setIsDragging] = useState(false),
     [dragStart, setDragStart] = useState({ x: 0, y: 0 }),
     [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 }),
     [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 }),
-    [highlightedCell, setHighlightedCell] = useState<{ x: number, y: number } | null>(null)
+    [highlightedCell, setHighlightedCell] = useState<{
+      x: number
+      y: number
+    } | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   /** グリッド描画 */
-  function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, blockSize: number) {
-    ctx.strokeStyle = '#000000'
+  function drawGrid(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    blockSize: number,
+  ) {
+    ctx.strokeStyle = "#000000"
     ctx.lineWidth = 1
     ctx.globalAlpha = 0.5
 
@@ -58,7 +75,7 @@ function ImagePreview({
     if (!highlightedCell || !isMobile) return
 
     const pixelSize = currentBlockSize * zoomLevel
-    ctx.strokeStyle = '#000000'
+    ctx.strokeStyle = "#000000"
     ctx.lineWidth = 2
     ctx.globalAlpha = 1
 
@@ -66,19 +83,23 @@ function ImagePreview({
       highlightedCell.x * pixelSize + ctx.lineWidth / 2,
       highlightedCell.y * pixelSize + ctx.lineWidth / 2,
       pixelSize - ctx.lineWidth,
-      pixelSize - ctx.lineWidth
+      pixelSize - ctx.lineWidth,
     )
   }
 
   /** チェッカーボード描画 */
-  function drawCheckerboard(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  function drawCheckerboard(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+  ) {
     const size = currentBlockSize * zoomLevel * 2
-    const color1 = '#999999'
-    const color2 = '#666666'
+    const color1 = "#999999"
+    const color2 = "#666666"
 
     for (let y = 0; y < height; y += size) {
       for (let x = 0; x < width; x += size) {
-        ctx.fillStyle = ((x / size) % 2 === (y / size) % 2) ? color1 : color2
+        ctx.fillStyle = (x / size) % 2 === (y / size) % 2 ? color1 : color2
         ctx.fillRect(x, y, size, size)
       }
     }
@@ -89,7 +110,7 @@ function ImagePreview({
   const drawCanvas = useCallback(() => {
     if (!processedCanvas || !canvasRef.current) return
 
-    const ctx = canvasRef.current.getContext('2d')
+    const ctx = canvasRef.current.getContext("2d")
     if (!ctx) return
 
     const sourceCanvas = processedCanvas
@@ -116,14 +137,19 @@ function ImagePreview({
     if (!processedCanvas) return null
 
     const canvas = processedCanvas
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return null
 
     // 座標をオリジナルサイズに変換
     const originalX = Math.floor(x / zoomLevel)
     const originalY = Math.floor(y / zoomLevel)
 
-    if (originalX < 0 || originalX >= canvas.width || originalY < 0 || originalY >= canvas.height) {
+    if (
+      originalX < 0 ||
+      originalX >= canvas.width ||
+      originalY < 0 ||
+      originalY >= canvas.height
+    ) {
       return null
     }
 
@@ -208,16 +234,18 @@ function ImagePreview({
 
       const pixelInfo = getPixelColor(x, y)
       if (pixelInfo) {
-        const colorName = COLOR_NAME_MAP[pixelInfo.color.toLowerCase()] || 'Unknown Color'
-        const colorText = pixelInfo.a < 255 ? "透明" : `${colorName}\n${pixelInfo.color}`
+        const colorName =
+          COLOR_NAME_MAP[pixelInfo.color.toLowerCase()] || "Unknown Color"
+        const colorText =
+          pixelInfo.a < 255 ? "透明" : `${colorName}\n${pixelInfo.color}`
         setColorInfo({
           show: !isDragging,
           x: e.pageX,
           y: e.pageY,
-          text: `(${Math.floor(pixelInfo.originalX / currentBlockSize)}, ${Math.floor(pixelInfo.originalY / currentBlockSize)})\n${colorText}`
+          text: `(${Math.floor(pixelInfo.originalX / currentBlockSize)}, ${Math.floor(pixelInfo.originalY / currentBlockSize)})\n${colorText}`,
         })
       } else {
-        setColorInfo({ show: false, x: 0, y: 0, text: '' })
+        setColorInfo({ show: false, x: 0, y: 0, text: "" })
       }
     }
   }
@@ -227,7 +255,7 @@ function ImagePreview({
     setIsDragging(true)
     setDragStart({
       x: e.clientX,
-      y: e.clientY
+      y: e.clientY,
     })
   }
 
@@ -237,7 +265,7 @@ function ImagePreview({
       setInitialPosition(canvasPosition)
 
       //showの値のみを変更して他は元々の値を使う color-info要素の表示
-      setColorInfo(prev => ({ ...prev, show: true }))
+      setColorInfo((prev) => ({ ...prev, show: true }))
     }
   }
 
@@ -246,7 +274,7 @@ function ImagePreview({
       setIsDragging(false)
       setInitialPosition(canvasPosition)
     }
-    setColorInfo({ show: false, x: 0, y: 0, text: '' })
+    setColorInfo({ show: false, x: 0, y: 0, text: "" })
   }
 
   function handleTouchStart(e: React.TouchEvent<HTMLCanvasElement>) {
@@ -266,7 +294,7 @@ function ImagePreview({
     setIsDragging(true)
     setDragStart({
       x: touch.clientX,
-      y: touch.clientY
+      y: touch.clientY,
     })
   }
 
@@ -312,9 +340,9 @@ function ImagePreview({
 
   function downloadImage() {
     if (processedCanvas) {
-      const link = document.createElement('a')
-      link.download = 'pixelated_image.png'
-      link.href = processedCanvas.toDataURL('image/png')
+      const link = document.createElement("a")
+      link.download = "pixelated_image.png"
+      link.href = processedCanvas.toDataURL("image/png")
       link.click()
     }
   }
@@ -325,18 +353,21 @@ function ImagePreview({
 
   useEffect(() => {
     function handleTouchOutside(event: TouchEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setHighlightedCell(null)
       }
     }
 
     if (isMobile) {
-      document.addEventListener('touchstart', handleTouchOutside)
+      document.addEventListener("touchstart", handleTouchOutside)
     }
 
     return () => {
       if (isMobile) {
-        document.removeEventListener('touchstart', handleTouchOutside)
+        document.removeEventListener("touchstart", handleTouchOutside)
       }
     }
   }, [isMobile])
@@ -364,14 +395,16 @@ function ImagePreview({
 
   return (
     <div className="preview-container">
-      <h4>処理後画像 <span>({processedCanvas.width / currentBlockSize}x{processedCanvas.height / currentBlockSize})</span></h4>
+      <h4>
+        処理後画像{" "}
+        <span>
+          ({processedCanvas.width / currentBlockSize}x
+          {processedCanvas.height / currentBlockSize})
+        </span>
+      </h4>
       <div className="zoom-controls">
         <label htmlFor="zoomSelect">ズーム:</label>
-        <select
-          id="zoomSelect"
-          value={zoomLevel}
-          onChange={handleZoomChange}
-        >
+        <select id="zoomSelect" value={zoomLevel} onChange={handleZoomChange}>
           <option value="0.5">50%</option>
           <option value="1">100%</option>
           <option value="2">200%</option>
@@ -379,7 +412,9 @@ function ImagePreview({
           <option value="8">800%</option>
           <option value="10">1000%</option>
         </select>
-        <button className="download-btn" onClick={downloadImage} type="button">PNG ダウンロード</button>
+        <button className="download-btn" onClick={downloadImage} type="button">
+          PNG ダウンロード
+        </button>
       </div>
       <div className="canvas-container" ref={containerRef}>
         <canvas
@@ -388,7 +423,7 @@ function ImagePreview({
           style={{
             cursor: isDragging ? "grabbing" : "crosshair",
             transform: `translate(${canvasPosition.x}px, ${canvasPosition.y}px)`,
-            touchAction: 'none'
+            touchAction: "none",
           }}
           onMouseMove={handleMouseMove}
           onMouseDown={handleMouseDown}
@@ -399,15 +434,17 @@ function ImagePreview({
           onTouchEnd={handleTouchEnd}
         ></canvas>
       </div>
-      {(!isDragging && colorInfo.show) && (
+      {!isDragging && colorInfo.show && (
         <div
           className="color-info"
           style={{
             display: "block",
             left: colorInfo.x + 5,
-            top: colorInfo.y + 5
+            top: colorInfo.y + 5,
           }}
-        >{colorInfo.text}</div>
+        >
+          {colorInfo.text}
+        </div>
       )}
     </div>
   )
@@ -415,21 +452,23 @@ function ImagePreview({
 
 function SelectColors({
   selectedColors,
-  setSelectedColors
+  setSelectedColors,
 }: {
   selectedColors: { [key: string]: boolean }
-  setSelectedColors: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>
+  setSelectedColors: React.Dispatch<
+    React.SetStateAction<{ [key: string]: boolean }>
+  >
 }) {
   /** カラー選択のハンドラ */
   function handleColorSelectionChange(colorName: string) {
-    setSelectedColors(prev => ({
+    setSelectedColors((prev) => ({
       ...prev,
-      [colorName]: !prev[colorName]
+      [colorName]: !prev[colorName],
     }))
   }
 
   function selectAllColor() {
-    setSelectedColors(prev => {
+    setSelectedColors((prev) => {
       const state: { [key: string]: boolean } = {}
       for (const color of Object.keys(prev)) {
         state[color] = true
@@ -439,7 +478,7 @@ function SelectColors({
   }
 
   function deselectAllColors() {
-    setSelectedColors(prev => {
+    setSelectedColors((prev) => {
       const state: { [key: string]: boolean } = {}
       for (const color of Object.keys(prev)) {
         state[color] = false
@@ -454,12 +493,16 @@ function SelectColors({
         <div className="color-selection-header">
           <p>追加カラーパレット:</p>
           <div className="color-selection-controls">
-            <button onClick={selectAllColor} type="button">すべて選択</button>
-            <button onClick={deselectAllColors} type="button">すべて解除</button>
+            <button onClick={selectAllColor} type="button">
+              すべて選択
+            </button>
+            <button onClick={deselectAllColors} type="button">
+              すべて解除
+            </button>
           </div>
         </div>
         <div className="color-checkboxes">
-          {SELECTABLE_COLORS.map(color => (
+          {SELECTABLE_COLORS.map((color) => (
             <div className="checkbox-group" key={color.name}>
               <input
                 type="checkbox"
@@ -467,7 +510,10 @@ function SelectColors({
                 checked={selectedColors[color.name]}
                 onChange={() => handleColorSelectionChange(color.name)}
               />
-              <span className="color-swatch" style={{ backgroundColor: color.hex }}></span>
+              <span
+                className="color-swatch"
+                style={{ backgroundColor: color.hex }}
+              ></span>
               <label htmlFor={`color-${color.name}`}>{color.name}</label>
             </div>
           ))}
@@ -479,7 +525,7 @@ function SelectColors({
 
 function initialColorSelectionState() {
   const state: { [key: string]: boolean } = {}
-  SELECTABLE_COLORS.forEach(color => {
+  SELECTABLE_COLORS.forEach((color) => {
     state[color.name] = true
   })
   return state
@@ -491,11 +537,13 @@ export default function Page() {
     [noPixelateChecked, setNoPixelateChecked] = useState(false),
     [currentImage, setImageFile] = useState<HTMLImageElement | null>(null),
     [processing, setProcessing] = useState(false),
-    [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null),
+    [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(
+      null,
+    ),
     [selectedColors, setSelectedColors] = useState(initialColorSelectionState),
     [isSettingsOpen, setSettingsOpen] = useState(false)
 
-  const isMobile = typeof window !== 'undefined' && 'ontouchstart' in window
+  const isMobile = typeof window !== "undefined" && "ontouchstart" in window
 
   const currentBlockSize = useRef(0)
 
@@ -507,7 +555,7 @@ export default function Page() {
     }
 
     const reader = new FileReader()
-    reader.onload = e => {
+    reader.onload = (e) => {
       const img = new window.Image()
       img.onload = () => {
         setImageFile(img)
@@ -526,37 +574,43 @@ export default function Page() {
 
     // 最終的なパレットを作成
     const finalPalette = [...DEFAULT_COLORS]
-    SELECTABLE_COLORS.forEach(color => {
+    SELECTABLE_COLORS.forEach((color) => {
       if (selectedColors[color.name]) {
         finalPalette.push(color)
       }
     })
 
     // HEX to RGB
-    const finalPaletteRGB = finalPalette.map(c => {
+    const finalPaletteRGB = finalPalette.map((c) => {
       const r = parseInt(c.hex.slice(1, 3), 16)
       const g = parseInt(c.hex.slice(3, 5), 16)
       const b = parseInt(c.hex.slice(5, 7), 16)
       return [r, g, b]
     })
 
-    currentBlockSize.current = ditherChecked || noPixelateChecked ? 1 : blockSize
+    currentBlockSize.current =
+      ditherChecked || noPixelateChecked ? 1 : blockSize
 
     try {
-      const dataUrl = await imageConversion(currentImage.src, finalPaletteRGB, currentBlockSize.current, ditherChecked, noPixelateChecked)
+      const dataUrl = await imageConversion(
+        currentImage.src,
+        finalPaletteRGB,
+        currentBlockSize.current,
+        ditherChecked,
+        noPixelateChecked,
+      )
 
       const img = new window.Image()
       img.onload = () => {
-        const canvas = document.createElement('canvas')
+        const canvas = document.createElement("canvas")
         canvas.width = img.width
         canvas.height = img.height
-        const ctx = canvas.getContext('2d')
+        const ctx = canvas.getContext("2d")
         ctx?.drawImage(img, 0, 0)
 
         setProcessedCanvas(canvas)
       }
       img.src = dataUrl
-
     } catch (error) {
       setProcessedCanvas(null)
       setImageFile(null)
@@ -602,20 +656,35 @@ export default function Page() {
             onClick={() => setSettingsOpen(!isSettingsOpen)}
             type="button"
           >
-            {isSettingsOpen ? '設定を閉じる' : '設定を開く'}
+            {isSettingsOpen ? "設定を閉じる" : "設定を開く"}
           </button>
         )}
-        <div className={`settings-panel ${isMobile && !isSettingsOpen ? 'hidden' : ''}`}>
+        <div
+          className={`settings-panel ${isMobile && !isSettingsOpen ? "hidden" : ""}`}
+        >
           <div className="setting">
             <label htmlFor="imageInput" className="upload-area">
               {currentImage ? (
                 // biome-ignore lint/performance/noImgElement: false positive, using <img> for preview is intentional
-                <img src={currentImage.src} alt="Upload preview" className="upload-preview-image" />
+                <img
+                  src={currentImage.src}
+                  alt="Upload preview"
+                  className="upload-preview-image"
+                />
               ) : (
                 <div className="upload-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" shapeRendering="crispEdges">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    width="48"
+                    height="48"
+                    shapeRendering="crispEdges"
+                  >
                     <title>Upload image icon</title>
-                    <path fill="#fff" d="M4 3h16v1H4zm-1 1h18v1H3zm-1 1h2v15H2zm18 0h2v15h-2zM3 20h18v1H3zm1 1h16v1H4zM8 7h2v1H8zM7 8h4v1H7zM6 9h2v2H6zm4 0h2v2h-2zM7 11h4v1H7zm1 1h2v1H8zm7-2h2v1h-2zm-1 1h4v1h-4zm-1 1h6v1h-6zm-1 1h3v1h-3zm5 0h3v1h-3zm-6 1h3v1h-3zm7 0h2v1h-2zm-8 1h3v1h-3zm9 0h1v1h-1zm-10 1h3v1H9zm-1 1h3v1H8zm-1 1h3v1H7zm-1 1h3v1H6z" />
+                    <path
+                      fill="#fff"
+                      d="M4 3h16v1H4zm-1 1h18v1H3zm-1 1h2v15H2zm18 0h2v15h-2zM3 20h18v1H3zm1 1h16v1H4zM8 7h2v1H8zM7 8h4v1H7zM6 9h2v2H6zm4 0h2v2h-2zM7 11h4v1H7zm1 1h2v1H8zm7-2h2v1h-2zm-1 1h4v1h-4zm-1 1h6v1h-6zm-1 1h3v1h-3zm5 0h3v1h-3zm-6 1h3v1h-3zm7 0h2v1h-2zm-8 1h3v1h-3zm9 0h1v1h-1zm-10 1h3v1H9zm-1 1h3v1H8zm-1 1h3v1H7zm-1 1h3v1H6z"
+                    />
                   </svg>
                 </div>
               )}
@@ -625,7 +694,9 @@ export default function Page() {
                 id="imageInput"
                 accept="image/*"
                 style={{ display: "none" }}
-                onChange={e => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+                onChange={(e) =>
+                  e.target.files?.[0] && handleFileSelect(e.target.files[0])
+                }
               />
             </label>
 
@@ -663,15 +734,20 @@ export default function Page() {
             </div>
           </div>
 
-          <SelectColors selectedColors={selectedColors} setSelectedColors={setSelectedColors} />
+          <SelectColors
+            selectedColors={selectedColors}
+            setSelectedColors={setSelectedColors}
+          />
         </div>
 
         <button
-          className={`process-btn ${isMobile && !isSettingsOpen ? 'hidden' : ''}`}
+          className={`process-btn ${isMobile && !isSettingsOpen ? "hidden" : ""}`}
           disabled={!currentImage || processing}
           onClick={processImage}
           type="button"
-        >画像を処理</button>
+        >
+          画像を処理
+        </button>
       </div>
     </div>
   )
