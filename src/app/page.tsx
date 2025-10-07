@@ -41,13 +41,12 @@ function ImagePreview({
     ctx: CanvasRenderingContext2D,
     width: number,
     height: number,
-    blockSize: number,
   ) {
     ctx.strokeStyle = "#000000"
     ctx.lineWidth = 1
     ctx.globalAlpha = 0.5
 
-    const pixelSize = blockSize * zoomLevel
+    const pixelSize = currentBlockSize * zoomLevel
 
     if (pixelSize < 4) return // グリッドが細かすぎる場合は描画しない
 
@@ -75,6 +74,9 @@ function ImagePreview({
     if (!highlightedCell || !isMobile) return
 
     const pixelSize = currentBlockSize * zoomLevel
+
+    if (pixelSize < 4) return // ハイライトが細かすぎる場合は描画しない
+
     ctx.strokeStyle = "#000000"
     ctx.lineWidth = 2
     ctx.globalAlpha = 1
@@ -127,9 +129,9 @@ function ImagePreview({
     ctx.drawImage(sourceCanvas, 0, 0, displayWidth, displayHeight)
 
     if (zoomLevel >= 2) {
-      drawGrid(ctx, displayWidth, displayHeight, currentBlockSize)
+      drawGrid(ctx, displayWidth, displayHeight)
+      drawHighlight(ctx)
     }
-    drawHighlight(ctx)
   }, [processedCanvas, zoomLevel, highlightedCell])
 
   /** カラー情報取得 */
@@ -541,9 +543,14 @@ export default function Page() {
       null,
     ),
     [selectedColors, setSelectedColors] = useState(initialColorSelectionState),
-    [isSettingsOpen, setSettingsOpen] = useState(false)
+    [isSettingsOpen, setSettingsOpen] = useState(false),
+    [isMobile, setIsMobile] = useState(false),
+    [mounted, setMounted] = useState(false)
 
-  const isMobile = typeof window !== "undefined" && "ontouchstart" in window
+  useEffect(() => {
+    setMounted(true)
+    setIsMobile(typeof window !== "undefined" && "ontouchstart" in window)
+  }, [])
 
   const currentBlockSize = useRef(0)
 
@@ -626,6 +633,8 @@ export default function Page() {
     // モバイル時は処理後に設定パネルを閉じる
     if (isMobile) setSettingsOpen(false)
   }
+
+  if (!mounted) return null
 
   return (
     <div className="app-container">
