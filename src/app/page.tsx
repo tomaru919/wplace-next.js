@@ -75,7 +75,7 @@ function ImagePreview({
 
     const pixelSize = currentBlockSize * zoomLevel
 
-    if (pixelSize < 4) return // ハイライトが細かすぎる場合は描画しない
+    if (pixelSize < 8) return // ハイライトが細かすぎる場合は描画しない
 
     ctx.strokeStyle = "#000000"
     ctx.lineWidth = 2
@@ -166,20 +166,26 @@ function ImagePreview({
   /** ズームレベル変更時の処理 */
   function handleZoomChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newZoomLevel = parseFloat(e.target.value)
-    setZoomLevel(newZoomLevel)
 
-    // ズーム変更時に移動量を再計算・制限する
     if (processedCanvas && containerRef.current) {
       const container = containerRef.current
-      const newCanvasWidth = processedCanvas.width * newZoomLevel
-      const newCanvasHeight = processedCanvas.height * newZoomLevel
       const containerWidth = container.clientWidth
       const containerHeight = container.clientHeight
 
-      let newX = canvasPosition.x
-      let newY = canvasPosition.y
+      const oldZoomLevel = zoomLevel
 
-      // X軸
+      // ズーム前の中心点のキャンバス上の座標
+      const centerX = (containerWidth / 2 - canvasPosition.x) / oldZoomLevel
+      const centerY = (containerHeight / 2 - canvasPosition.y) / oldZoomLevel
+
+      // ズーム後の新しいキャンバス位置
+      let newX = containerWidth / 2 - centerX * newZoomLevel
+      let newY = containerHeight / 2 - centerY * newZoomLevel
+
+      const newCanvasWidth = processedCanvas.width * newZoomLevel
+      const newCanvasHeight = processedCanvas.height * newZoomLevel
+
+      // X軸の移動制限
       if (newCanvasWidth > containerWidth) {
         const minX = containerWidth - newCanvasWidth
         newX = Math.max(minX, Math.min(newX, 0))
@@ -187,7 +193,7 @@ function ImagePreview({
         newX = (containerWidth - newCanvasWidth) / 2
       }
 
-      // Y軸
+      // Y軸の移動制限
       if (newCanvasHeight > containerHeight) {
         const minY = containerHeight - newCanvasHeight
         newY = Math.max(minY, Math.min(newY, 0))
@@ -195,8 +201,11 @@ function ImagePreview({
         newY = (containerHeight - newCanvasHeight) / 2
       }
 
+      setZoomLevel(newZoomLevel)
       setCanvasPosition({ x: newX, y: newY })
       setInitialPosition({ x: newX, y: newY })
+    } else {
+      setZoomLevel(newZoomLevel)
     }
   }
 
