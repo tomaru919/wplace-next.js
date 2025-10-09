@@ -68,6 +68,4 @@ const PALETTE = [
 export const DEFAULT_COLORS = PALETTE.slice(0, 31)
 export const SELECTABLE_COLORS = PALETTE.slice(31)
 
-export const COLOR_NAME_MAP = Object.fromEntries(
-  PALETTE.map((c) => [c.hex, c.name]),
-)
+export const COLOR_NAME_MAP = Object.fromEntries(PALETTE.map((c) => [c.hex, c.name]))

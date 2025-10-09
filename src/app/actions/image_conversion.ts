@@ -9,11 +9,7 @@ interface ImageData {
 }
 
 /** 画像サイズをブロックサイズで割り切れるように調整 */
-function adjustImageSize(
-  originalWidth: number,
-  originalHeight: number,
-  blockSize: number,
-) {
+function adjustImageSize(originalWidth: number, originalHeight: number, blockSize: number) {
   const adjustedWidth = Math.floor(originalWidth / blockSize) * blockSize
   const adjustedHeight = Math.floor(originalHeight / blockSize) * blockSize
 
@@ -37,18 +33,12 @@ function fullTransparent(imageData: ImageData) {
 /**
  * Finds the nearest color in the palette. (Server-side compatible)
  */
-function findNearestPaletteColor(
-  r: number,
-  g: number,
-  b: number,
-  palette: number[][],
-) {
+function findNearestPaletteColor(r: number, g: number, b: number, palette: number[][]) {
   let minDistance = Infinity
   let nearestColor = palette[0]
 
   for (const color of palette) {
-    const distance =
-      (r - color[0]) ** 2 + (g - color[1]) ** 2 + (b - color[2]) ** 2
+    const distance = (r - color[0]) ** 2 + (g - color[1]) ** 2 + (b - color[2]) ** 2
     if (distance < minDistance) {
       minDistance = distance
       nearestColor = color
@@ -61,10 +51,7 @@ function findNearestPaletteColor(
  * Applies Floyd-Steinberg dithering. (Server-side compatible)
  * @returns A new ImageData object.
  */
-function floydSteinbergDither(
-  imageData: ImageData,
-  palette: number[][],
-): ImageData {
+function floydSteinbergDither(imageData: ImageData, palette: number[][]): ImageData {
   const data = new Uint8ClampedArray(imageData.data)
   const width = imageData.width
   const height = imageData.height
@@ -79,12 +66,7 @@ function floydSteinbergDither(
       const oldG = data[idx + 1]
       const oldB = data[idx + 2]
 
-      const [newR, newG, newB] = findNearestPaletteColor(
-        oldR,
-        oldG,
-        oldB,
-        palette,
-      )
+      const [newR, newG, newB] = findNearestPaletteColor(oldR, oldG, oldB, palette)
 
       data[idx] = newR
       data[idx + 1] = newG
@@ -97,65 +79,29 @@ function floydSteinbergDither(
       // Error diffusion
       if (x + 1 < width) {
         const rightIdx = (y * width + x + 1) * 4
-        data[rightIdx] = Math.max(
-          0,
-          Math.min(255, data[rightIdx] + (errR * 7) / 16),
-        )
-        data[rightIdx + 1] = Math.max(
-          0,
-          Math.min(255, data[rightIdx + 1] + (errG * 7) / 16),
-        )
-        data[rightIdx + 2] = Math.max(
-          0,
-          Math.min(255, data[rightIdx + 2] + (errB * 7) / 16),
-        )
+        data[rightIdx] = Math.max(0, Math.min(255, data[rightIdx] + (errR * 7) / 16))
+        data[rightIdx + 1] = Math.max(0, Math.min(255, data[rightIdx + 1] + (errG * 7) / 16))
+        data[rightIdx + 2] = Math.max(0, Math.min(255, data[rightIdx + 2] + (errB * 7) / 16))
       }
 
       if (y + 1 < height) {
         if (x > 0) {
           const bottomLeftIdx = ((y + 1) * width + x - 1) * 4
-          data[bottomLeftIdx] = Math.max(
-            0,
-            Math.min(255, data[bottomLeftIdx] + (errR * 3) / 16),
-          )
-          data[bottomLeftIdx + 1] = Math.max(
-            0,
-            Math.min(255, data[bottomLeftIdx + 1] + (errG * 3) / 16),
-          )
-          data[bottomLeftIdx + 2] = Math.max(
-            0,
-            Math.min(255, data[bottomLeftIdx + 2] + (errB * 3) / 16),
-          )
+          data[bottomLeftIdx] = Math.max(0, Math.min(255, data[bottomLeftIdx] + (errR * 3) / 16))
+          data[bottomLeftIdx + 1] = Math.max(0, Math.min(255, data[bottomLeftIdx + 1] + (errG * 3) / 16))
+          data[bottomLeftIdx + 2] = Math.max(0, Math.min(255, data[bottomLeftIdx + 2] + (errB * 3) / 16))
         }
 
         const bottomIdx = ((y + 1) * width + x) * 4
-        data[bottomIdx] = Math.max(
-          0,
-          Math.min(255, data[bottomIdx] + (errR * 5) / 16),
-        )
-        data[bottomIdx + 1] = Math.max(
-          0,
-          Math.min(255, data[bottomIdx + 1] + (errG * 5) / 16),
-        )
-        data[bottomIdx + 2] = Math.max(
-          0,
-          Math.min(255, data[bottomIdx + 2] + (errB * 5) / 16),
-        )
+        data[bottomIdx] = Math.max(0, Math.min(255, data[bottomIdx] + (errR * 5) / 16))
+        data[bottomIdx + 1] = Math.max(0, Math.min(255, data[bottomIdx + 1] + (errG * 5) / 16))
+        data[bottomIdx + 2] = Math.max(0, Math.min(255, data[bottomIdx + 2] + (errB * 5) / 16))
 
         if (x + 1 < width) {
           const bottomRightIdx = ((y + 1) * width + x + 1) * 4
-          data[bottomRightIdx] = Math.max(
-            0,
-            Math.min(255, data[bottomRightIdx] + (errR * 1) / 16),
-          )
-          data[bottomRightIdx + 1] = Math.max(
-            0,
-            Math.min(255, data[bottomRightIdx + 1] + (errG * 1) / 16),
-          )
-          data[bottomRightIdx + 2] = Math.max(
-            0,
-            Math.min(255, data[bottomRightIdx + 2] + (errB * 1) / 16),
-          )
+          data[bottomRightIdx] = Math.max(0, Math.min(255, data[bottomRightIdx] + (errR * 1) / 16))
+          data[bottomRightIdx + 1] = Math.max(0, Math.min(255, data[bottomRightIdx + 1] + (errG * 1) / 16))
+          data[bottomRightIdx + 2] = Math.max(0, Math.min(255, data[bottomRightIdx + 2] + (errB * 1) / 16))
         }
       }
     }
@@ -169,21 +115,13 @@ function floydSteinbergDither(
  * Quantizes image to the nearest colors in the palette. (Server-side compatible)
  * @returns The modified ImageData object.
  */
-function quantizeToNearestColor(
-  imageData: ImageData,
-  palette: number[][],
-): ImageData {
+function quantizeToNearestColor(imageData: ImageData, palette: number[][]): ImageData {
   const data = imageData.data
 
   for (let i = 0; i < data.length; i += 4) {
     if (data[i + 3] === 0) continue // Skip transparent pixels
 
-    const [r, g, b] = findNearestPaletteColor(
-      data[i],
-      data[i + 1],
-      data[i + 2],
-      palette,
-    )
+    const [r, g, b] = findNearestPaletteColor(data[i], data[i + 1], data[i + 2], palette)
     data[i] = r
     data[i + 1] = g
     data[i + 2] = b
@@ -223,23 +161,14 @@ export async function imageConversion(
     const smallHeight = Math.max(1, Math.floor(adjustedSize.height / blockSize))
 
     // Resize down and get an intermediate buffer to break the optimization chain
-    const smallImageBuffer = await sharpInstance
-      .resize(smallWidth, smallHeight, { kernel: "nearest" })
-      .toBuffer()
+    const smallImageBuffer = await sharpInstance.resize(smallWidth, smallHeight, { kernel: "nearest" }).toBuffer()
 
     // Create a new sharp instance from the small buffer and resize back up
-    sharpInstance = sharp(smallImageBuffer).resize(
-      adjustedSize.width,
-      adjustedSize.height,
-      { kernel: "nearest" },
-    )
+    sharpInstance = sharp(smallImageBuffer).resize(adjustedSize.width, adjustedSize.height, { kernel: "nearest" })
   }
 
   // Get image data for quantization/dithering
-  const { data, info } = await sharpInstance
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true })
+  const { data, info } = await sharpInstance.ensureAlpha().raw().toBuffer({ resolveWithObject: true })
 
   const imageData: ImageData = {
     data,

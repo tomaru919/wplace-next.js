@@ -36,7 +36,8 @@
   },
   "javascript": {
     "formatter": {
-      "semicolons": "asNeeded"
+      "semicolons": "asNeeded",
+      "lineWidth": 120
     }
   }
 }
