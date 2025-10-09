@@ -427,7 +427,7 @@ function ImagePreview({
           style={{
             display: "block",
             left: colorInfo.x + 5,
-            top: colorInfo.y + 5,
+            top: colorInfo.y - 90,
           }}
         >
           {colorInfo.text}
