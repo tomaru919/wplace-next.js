@@ -83,9 +83,9 @@ function ImagePreview({
 
   /** チェッカーボード描画 */
   function drawCheckerboard(ctx: CanvasRenderingContext2D, width: number, height: number) {
-    const size = currentBlockSize * zoomLevel * 2
-    const color1 = "#999999"
-    const color2 = "#666666"
+    const size = zoomLevel * 8
+    const color1 = "#25292e"
+    const color2 = "#141414"
 
     for (let y = 0; y < height; y += size) {
       for (let x = 0; x < width; x += size) {

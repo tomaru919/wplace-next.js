@@ -120,7 +120,6 @@ input[type="range"]::-webkit-slider-runnable-track {
   width: 100%;
   height: 6px;
   background: #000;
-  border-radius: 5px;
   border: 1px solid #fff;
 }
 
@@ -239,7 +238,7 @@ input[type="checkbox"]:checked::before {
   flex-grow: 1;
   border: 2px solid #000;
   overflow: hidden;
-  background-color: #333;
+  background-color: #141414;
   image-rendering: pixelated;
 }
 
@@ -255,15 +254,15 @@ input[type="checkbox"]:checked::before {
 
 select {
   font-family: "DotGothic16", sans-serif;
-  background-color: #fff;
+  background-color: #333;
   border: 2px solid #000;
   border-radius: 0%;
   padding: 8px;
-  font-size: 0.9rem;
   box-shadow: 3px 3px 0 #000;
   width: 90px;
-  color: #000;
+  color: #fff;
   height: 41px;
+  font-weight: 600;
 }
 
 .color-info {
@@ -443,40 +442,4 @@ select {
   .process-btn.hidden {
     display: none;
   }
-}
-
-/* Custom Scrollbar Styles */
-/* ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: #2a2a2a;
-  border-left: 2px solid #000;
-  border-right: 2px solid #000;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #ffdd00;
-  border: 2px solid #000;
-  box-shadow: 2px 2px 0 #000;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: #ffff00;
-}
-
-::-webkit-scrollbar-corner {
-  background: #111;
-} */
-
-#zoomSelect {
-  background-color: #333;
-  color: #fff;
-}
-
-#zoomSelect option {
-  background-color: #333;
-  color: #fff;
 }
