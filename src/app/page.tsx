@@ -7,27 +7,21 @@ import { imageConversion } from "./actions/image_conversion"
 function ImagePreview({
   processedCanvas,
   currentBlockSize,
-  isMobile,
 }: {
   processedCanvas: HTMLCanvasElement
   currentBlockSize: number
-  isMobile: boolean
 }) {
-  const [zoomLevel, setZoomLevel] = useState(1),
-    [colorInfo, setColorInfo] = useState({
-      show: false,
-      x: 0,
-      y: 0,
-      text: "",
-    }),
-    [isDragging, setIsDragging] = useState(false),
-    [dragStart, setDragStart] = useState({ x: 0, y: 0 }),
-    [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 }),
-    [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 }),
-    [highlightedCell, setHighlightedCell] = useState<{
-      x: number
-      y: number
-    } | null>(null)
+  const [zoomLevel, setZoomLevel] = useState(1)
+  const [colorInfo, setColorInfo] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    text: "",
+  })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 })
+  const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 })
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -59,26 +53,6 @@ function ImagePreview({
     }
 
     ctx.globalAlpha = 1
-  }
-
-  /** ハイライト描画 */
-  function drawHighlight(ctx: CanvasRenderingContext2D) {
-    if (!highlightedCell || !isMobile) return
-
-    const pixelSize = currentBlockSize * zoomLevel
-
-    if (pixelSize < 8) return // ハイライトが細かすぎる場合は描画しない
-
-    ctx.strokeStyle = "#000000"
-    ctx.lineWidth = 2
-    ctx.globalAlpha = 1
-
-    ctx.strokeRect(
-      highlightedCell.x * pixelSize + ctx.lineWidth / 2,
-      highlightedCell.y * pixelSize + ctx.lineWidth / 2,
-      pixelSize - ctx.lineWidth,
-      pixelSize - ctx.lineWidth,
-    )
   }
 
   /** チェッカーボード描画 */
@@ -118,9 +92,8 @@ function ImagePreview({
 
     if (zoomLevel >= 2) {
       drawGrid(ctx, displayWidth, displayHeight)
-      drawHighlight(ctx)
     }
-  }, [processedCanvas, zoomLevel, highlightedCell])
+  }, [processedCanvas, zoomLevel])
 
   /** カラー情報取得 */
   function getPixelColor(x: number, y: number) {
@@ -269,67 +242,6 @@ function ImagePreview({
     setColorInfo({ show: false, x: 0, y: 0, text: "" })
   }
 
-  function handleTouchStart(e: React.TouchEvent<HTMLCanvasElement>) {
-    e.preventDefault()
-    const touch = e.touches[0]
-    if (isMobile) {
-      const rect = e.currentTarget.getBoundingClientRect()
-      const x = touch.clientX - rect.left
-      const y = touch.clientY - rect.top
-      const pixelInfo = getPixelColor(x, y)
-      if (pixelInfo) {
-        const cellX = Math.floor(pixelInfo.originalX / currentBlockSize)
-        const cellY = Math.floor(pixelInfo.originalY / currentBlockSize)
-        setHighlightedCell({ x: cellX, y: cellY })
-      }
-    }
-    setIsDragging(true)
-    setDragStart({
-      x: touch.clientX,
-      y: touch.clientY,
-    })
-  }
-
-  function handleTouchMove(e: React.TouchEvent<HTMLCanvasElement>) {
-    if (canvasRef.current) {
-      if (isDragging && containerRef.current) {
-        e.preventDefault()
-        const touch = e.touches[0]
-
-        const container = containerRef.current
-        const canvasWidth = canvasRef.current.width
-        const canvasHeight = canvasRef.current.height
-        const containerWidth = container.clientWidth
-        const containerHeight = container.clientHeight
-
-        let newX = initialPosition.x + (touch.clientX - dragStart.x)
-        let newY = initialPosition.y + (touch.clientY - dragStart.y)
-
-        if (canvasWidth > containerWidth) {
-          const minX = containerWidth - canvasWidth
-          newX = Math.max(minX, Math.min(newX, 0))
-        } else {
-          newX = (containerWidth - canvasWidth) / 2
-        }
-
-        if (canvasHeight > containerHeight) {
-          const minY = containerHeight - canvasHeight
-          newY = Math.max(minY, Math.min(newY, 0))
-        } else {
-          newY = (containerHeight - canvasHeight) / 2
-        }
-        setCanvasPosition({ x: newX, y: newY })
-      }
-    }
-  }
-
-  function handleTouchEnd() {
-    if (isDragging) {
-      setIsDragging(false)
-      setInitialPosition(canvasPosition)
-    }
-  }
-
   function downloadImage() {
     if (processedCanvas) {
       const link = document.createElement("a")
@@ -342,24 +254,6 @@ function ImagePreview({
   useEffect(() => {
     drawCanvas()
   }, [drawCanvas])
-
-  useEffect(() => {
-    function handleTouchOutside(event: TouchEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setHighlightedCell(null)
-      }
-    }
-
-    if (isMobile) {
-      document.addEventListener("touchstart", handleTouchOutside)
-    }
-
-    return () => {
-      if (isMobile) {
-        document.removeEventListener("touchstart", handleTouchOutside)
-      }
-    }
-  }, [isMobile])
 
   // 移動位置とズームの初期化と中央揃え
   useEffect(() => {
@@ -416,9 +310,6 @@ function ImagePreview({
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
         ></canvas>
       </div>
       {!isDragging && colorInfo.show && (
@@ -521,15 +412,12 @@ export default function Page() {
   const [processing, setProcessing] = useState(false)
   const [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null)
   const [selectedColors, setSelectedColors] = useState(initialColorSelectionState)
-  const [isSettingsOpen, setSettingsOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   const currentBlockSize = useRef(0)
 
   useEffect(() => {
     setMounted(true)
-    setIsMobile(typeof window !== "undefined" && "ontouchstart" in window)
   }, [])
 
   /** 画像ファイル選択時の処理 */
@@ -606,9 +494,6 @@ export default function Page() {
     setTimeout(() => {
       setProcessing(false)
     }, 100)
-
-    // モバイル時は処理後に設定パネルを閉じる
-    if (isMobile) setSettingsOpen(false)
   }
 
   if (!mounted) return null
@@ -626,22 +511,13 @@ export default function Page() {
             <p>処理中...</p>
           </div>
         ) : processedCanvas ? (
-          <ImagePreview
-            processedCanvas={processedCanvas}
-            currentBlockSize={currentBlockSize.current}
-            isMobile={isMobile}
-          />
+          <ImagePreview processedCanvas={processedCanvas} currentBlockSize={currentBlockSize.current} />
         ) : (
           <h1>Wplace Image Conversion</h1>
         )}
       </div>
       <div className="sidebar">
-        {isMobile && (
-          <button className="settings-toggle" onClick={() => setSettingsOpen(!isSettingsOpen)} type="button">
-            {isSettingsOpen ? "設定を閉じる" : "設定を開く"}
-          </button>
-        )}
-        <div className={`settings-panel ${isMobile && !isSettingsOpen ? "hidden" : ""}`}>
+        <div className="settings-panel">
           <div className="setting">
             <label htmlFor="imageInput" className="upload-area">
               {currentImage ? (
@@ -711,12 +587,7 @@ export default function Page() {
           <SelectColors selectedColors={selectedColors} setSelectedColors={setSelectedColors} />
         </div>
 
-        <button
-          className={`process-btn ${isMobile && !isSettingsOpen ? "hidden" : ""}`}
-          disabled={!currentImage || processing}
-          onClick={processImage}
-          type="button"
-        >
+        <button className="process-btn" disabled={!currentImage || processing} onClick={processImage} type="button">
           画像を処理
         </button>
       </div>
