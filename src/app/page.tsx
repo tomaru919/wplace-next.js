@@ -413,6 +413,7 @@ export default function Page() {
   const [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null)
   const [selectedColors, setSelectedColors] = useState(initialColorSelectionState)
   const [mounted, setMounted] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   const currentBlockSize = useRef(0)
 
@@ -499,7 +500,7 @@ export default function Page() {
   if (!mounted) return null
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${isSidebarOpen ? "" : "sidebar-closed"}`}>
       <div className="main-content">
         {processing ? (
           <div className="processing">
@@ -591,6 +592,22 @@ export default function Page() {
           画像を処理
         </button>
       </div>
+      <button className="toggle-sidebar-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} type="button">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <title>{isSidebarOpen ? "サイドバーを閉じる" : "サイドバーを開く"}</title>
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
     </div>
   )
 }

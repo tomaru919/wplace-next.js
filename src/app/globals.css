@@ -37,6 +37,11 @@ body {
   padding: 20px;
   overflow-y: auto;
   border-left: 4px solid #000;
+  position: relative;
+  transition:
+    width 0.3s ease-in-out,
+    padding 0.3s ease-in-out,
+    border 0.3s ease-in-out;
 }
 
 h1 {
@@ -442,4 +447,49 @@ select {
   .process-btn.hidden {
     display: none;
   }
+}
+
+.app-container.sidebar-closed .sidebar {
+  width: 0;
+  padding: 20px 0;
+  border-left: none;
+  overflow: hidden;
+}
+
+.toggle-sidebar-btn {
+  position: absolute;
+  top: 50%;
+  right: 380px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 60px;
+  background-color: #2a2a2a;
+  border: 2px solid #000;
+  border-right: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -2px 2px 0 #000;
+  transition: all 0.3s ease-in-out;
+  z-index: 10;
+}
+
+.app-container.sidebar-closed .toggle-sidebar-btn {
+  right: 0;
+  transform: translateY(-50%);
+  border-radius: 0 8px 8px 0;
+  border: 2px solid #000;
+  border-left: none;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.toggle-sidebar-btn svg {
+  transition: transform 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .toggle-sidebar-btn svg {
+  transform: rotate(180deg);
 }
