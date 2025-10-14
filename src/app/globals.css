@@ -480,10 +480,6 @@ select {
 .app-container.sidebar-closed .toggle-sidebar-btn {
   right: 0;
   transform: translateY(-50%);
-  border-radius: 0 8px 8px 0;
-  border: 2px solid #000;
-  border-left: none;
-  box-shadow: 2px 2px 0 #000;
 }
 
 .toggle-sidebar-btn svg {

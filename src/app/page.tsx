@@ -7,9 +7,11 @@ import { imageConversion } from "./actions/image_conversion"
 function ImagePreview({
   processedCanvas,
   currentBlockSize,
+  isSidebarOpen,
 }: {
   processedCanvas: HTMLCanvasElement
   currentBlockSize: number
+  isSidebarOpen: boolean
 }) {
   const [zoomLevel, setZoomLevel] = useState(1)
   const [colorInfo, setColorInfo] = useState({
@@ -254,6 +256,33 @@ function ImagePreview({
   useEffect(() => {
     drawCanvas()
   }, [drawCanvas])
+
+  const recenterCanvas = useCallback(() => {
+    if (processedCanvas && containerRef.current) {
+      const container = containerRef.current
+      const canvasWidth = processedCanvas.width * zoomLevel
+      const canvasHeight = processedCanvas.height * zoomLevel
+      const containerWidth = container.clientWidth
+      const containerHeight = container.clientHeight
+
+      const x = (containerWidth - canvasWidth) / 2
+      const y = (containerHeight - canvasHeight) / 2
+
+      setCanvasPosition({ x, y })
+      setInitialPosition({ x, y })
+    } else {
+      setCanvasPosition({ x: 0, y: 0 })
+      setInitialPosition({ x: 0, y: 0 })
+    }
+  }, [processedCanvas, zoomLevel])
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: sidebar changes should trigger recenter
+  useEffect(() => {
+    // HACK: sidebar animation is 300ms
+    setTimeout(() => {
+      recenterCanvas()
+    }, 300)
+  }, [isSidebarOpen])
 
   // 移動位置とズームの初期化と中央揃え
   useEffect(() => {
@@ -512,7 +541,11 @@ export default function Page() {
             <p>処理中...</p>
           </div>
         ) : processedCanvas ? (
-          <ImagePreview processedCanvas={processedCanvas} currentBlockSize={currentBlockSize.current} />
+          <ImagePreview
+            processedCanvas={processedCanvas}
+            currentBlockSize={currentBlockSize.current}
+            isSidebarOpen={isSidebarOpen}
+          />
         ) : (
           <h1>Wplace Image Conversion</h1>
         )}
