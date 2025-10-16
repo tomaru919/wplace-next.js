@@ -265,16 +265,32 @@ function ImagePreview({
       const containerWidth = container.clientWidth
       const containerHeight = container.clientHeight
 
-      const x = (containerWidth - canvasWidth) / 2
-      const y = (containerHeight - canvasHeight) / 2
+      let newX = canvasPosition.x
+      let newY = canvasPosition.y
 
-      setCanvasPosition({ x, y })
-      setInitialPosition({ x, y })
+      // X軸の移動制限と中央揃え
+      if (canvasWidth > containerWidth) {
+        const minX = containerWidth - canvasWidth
+        newX = Math.max(minX, Math.min(newX, 0))
+      } else {
+        newX = (containerWidth - canvasWidth) / 2
+      }
+
+      // Y軸の移動制限と中央揃え
+      if (canvasHeight > containerHeight) {
+        const minY = containerHeight - canvasHeight
+        newY = Math.max(minY, Math.min(newY, 0))
+      } else {
+        newY = (containerHeight - canvasHeight) / 2
+      }
+
+      setCanvasPosition({ x: newX, y: newY })
+      setInitialPosition({ x: newX, y: newY })
     } else {
       setCanvasPosition({ x: 0, y: 0 })
       setInitialPosition({ x: 0, y: 0 })
     }
-  }, [processedCanvas, zoomLevel])
+  }, [processedCanvas, zoomLevel, canvasPosition.x, canvasPosition.y])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: sidebar changes should trigger recenter
   useEffect(() => {
