@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
 import { imageConversion } from "./actions/image_conversion"
@@ -253,50 +254,61 @@ function ImagePreview({
     }
   }
 
+  function handleSaveToLibrary() {
+    if (processedCanvas) {
+      const imageData = processedCanvas.toDataURL("image/png")
+      try {
+        const libraryData = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
+        libraryData.push({ imageData, createdAt: new Date().toISOString() })
+        localStorage.setItem("imageLibrary", JSON.stringify(libraryData))
+        alert("ライブラリに保存しました")
+      } catch (error) {
+        console.error("Error saving image to library:", error)
+        alert("ライブラリの保存に失敗しました")
+      }
+    }
+  }
+
   useEffect(() => {
     drawCanvas()
   }, [drawCanvas])
-
-  const recenterCanvas = useCallback(() => {
-    if (processedCanvas && containerRef.current) {
-      const container = containerRef.current
-      const canvasWidth = processedCanvas.width * zoomLevel
-      const canvasHeight = processedCanvas.height * zoomLevel
-      const containerWidth = container.clientWidth
-      const containerHeight = container.clientHeight
-
-      let newX = canvasPosition.x
-      let newY = canvasPosition.y
-
-      // X軸の移動制限と中央揃え
-      if (canvasWidth > containerWidth) {
-        const minX = containerWidth - canvasWidth
-        newX = Math.max(minX, Math.min(newX, 0))
-      } else {
-        newX = (containerWidth - canvasWidth) / 2
-      }
-
-      // Y軸の移動制限と中央揃え
-      if (canvasHeight > containerHeight) {
-        const minY = containerHeight - canvasHeight
-        newY = Math.max(minY, Math.min(newY, 0))
-      } else {
-        newY = (containerHeight - canvasHeight) / 2
-      }
-
-      setCanvasPosition({ x: newX, y: newY })
-      setInitialPosition({ x: newX, y: newY })
-    } else {
-      setCanvasPosition({ x: 0, y: 0 })
-      setInitialPosition({ x: 0, y: 0 })
-    }
-  }, [processedCanvas, zoomLevel, canvasPosition.x, canvasPosition.y])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: sidebar changes should trigger recenter
   useEffect(() => {
     // HACK: sidebar animation is 300ms
     setTimeout(() => {
-      recenterCanvas()
+      if (processedCanvas && containerRef.current) {
+        const container = containerRef.current
+        const canvasWidth = processedCanvas.width * zoomLevel
+        const canvasHeight = processedCanvas.height * zoomLevel
+        const containerWidth = container.clientWidth
+        const containerHeight = container.clientHeight
+
+        let newX = canvasPosition.x
+        let newY = canvasPosition.y
+
+        // X軸の移動制限と中央揃え
+        if (canvasWidth > containerWidth) {
+          const minX = containerWidth - canvasWidth
+          newX = Math.max(minX, Math.min(newX, 0))
+        } else {
+          newX = (containerWidth - canvasWidth) / 2
+        }
+
+        // Y軸の移動制限と中央揃え
+        if (canvasHeight > containerHeight) {
+          const minY = containerHeight - canvasHeight
+          newY = Math.max(minY, Math.min(newY, 0))
+        } else {
+          newY = (containerHeight - canvasHeight) / 2
+        }
+
+        setCanvasPosition({ x: newX, y: newY })
+        setInitialPosition({ x: newX, y: newY })
+      } else {
+        setCanvasPosition({ x: 0, y: 0 })
+        setInitialPosition({ x: 0, y: 0 })
+      }
     }, 300)
   }, [isSidebarOpen])
 
@@ -337,10 +349,13 @@ function ImagePreview({
           <option value="2">200%</option>
           <option value="4">400%</option>
           <option value="8">800%</option>
-          <option value="10">1000%</option>
+          <option value="12">1200%</option>
         </select>
         <button className="download-btn" onClick={downloadImage} type="button">
           PNG ダウンロード
+        </button>
+        <button className="save-btn" onClick={handleSaveToLibrary} type="button">
+          ライブラリに保存
         </button>
       </div>
       <div className="canvas-container" ref={containerRef}>
@@ -636,6 +651,10 @@ export default function Page() {
 
           <SelectColors selectedColors={selectedColors} setSelectedColors={setSelectedColors} />
         </div>
+
+        <Link href="/library" className="library-link">
+          ライブラリ
+        </Link>
 
         <button className="process-btn" disabled={!currentImage || processing} onClick={processImage} type="button">
           画像を処理
