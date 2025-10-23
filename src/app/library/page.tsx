@@ -10,8 +10,11 @@ interface LibraryImage {
 
 export default function LibraryPage() {
   const [images, setImages] = useState<LibraryImage[]>([])
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+
     try {
       const libraryData = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
       setImages(libraryData)
@@ -20,6 +23,8 @@ export default function LibraryPage() {
       setImages([])
     }
   }, [])
+
+  if (!mounted) return null
 
   return (
     <div className="library">

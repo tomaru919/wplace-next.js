@@ -4,17 +4,27 @@ import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
 import { imageConversion } from "./actions/image_conversion"
+import { SidebarActions } from "./components/sidebar_actions"
 
 function ImagePreview({
   processedCanvas,
   currentBlockSize,
   isSidebarOpen,
+  zoomLevel,
+  canvasPosition,
+  setCanvasPosition,
+  initialPosition,
+  setInitialPosition,
 }: {
   processedCanvas: HTMLCanvasElement
   currentBlockSize: number
   isSidebarOpen: boolean
+  zoomLevel: number
+  canvasPosition: { x: number; y: number }
+  setCanvasPosition: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>
+  initialPosition: { x: number; y: number }
+  setInitialPosition: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>
 }) {
-  const [zoomLevel, setZoomLevel] = useState(1)
   const [colorInfo, setColorInfo] = useState({
     show: false,
     x: 0,
@@ -23,8 +33,6 @@ function ImagePreview({
   })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 })
-  const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 })
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -122,52 +130,6 @@ function ImagePreview({
     return { color: toHex, a, originalX, originalY }
   }
 
-  /** ズームレベル変更時の処理 */
-  function handleZoomChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const newZoomLevel = parseFloat(e.target.value)
-
-    if (processedCanvas && containerRef.current) {
-      const container = containerRef.current
-      const containerWidth = container.clientWidth
-      const containerHeight = container.clientHeight
-
-      const oldZoomLevel = zoomLevel
-
-      // ズーム前の中心点のキャンバス上の座標
-      const centerX = (containerWidth / 2 - canvasPosition.x) / oldZoomLevel
-      const centerY = (containerHeight / 2 - canvasPosition.y) / oldZoomLevel
-
-      // ズーム後の新しいキャンバス位置
-      let newX = containerWidth / 2 - centerX * newZoomLevel
-      let newY = containerHeight / 2 - centerY * newZoomLevel
-
-      const newCanvasWidth = processedCanvas.width * newZoomLevel
-      const newCanvasHeight = processedCanvas.height * newZoomLevel
-
-      // X軸の移動制限
-      if (newCanvasWidth > containerWidth) {
-        const minX = containerWidth - newCanvasWidth
-        newX = Math.max(minX, Math.min(newX, 0))
-      } else {
-        newX = (containerWidth - newCanvasWidth) / 2
-      }
-
-      // Y軸の移動制限
-      if (newCanvasHeight > containerHeight) {
-        const minY = containerHeight - newCanvasHeight
-        newY = Math.max(minY, Math.min(newY, 0))
-      } else {
-        newY = (containerHeight - newCanvasHeight) / 2
-      }
-
-      setZoomLevel(newZoomLevel)
-      setCanvasPosition({ x: newX, y: newY })
-      setInitialPosition({ x: newX, y: newY })
-    } else {
-      setZoomLevel(newZoomLevel)
-    }
-  }
-
   function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
     if (canvasRef.current) {
       if (isDragging && containerRef.current) {
@@ -245,30 +207,6 @@ function ImagePreview({
     setColorInfo({ show: false, x: 0, y: 0, text: "" })
   }
 
-  function downloadImage() {
-    if (processedCanvas) {
-      const link = document.createElement("a")
-      link.download = "pixelated_image.png"
-      link.href = processedCanvas.toDataURL("image/png")
-      link.click()
-    }
-  }
-
-  function handleSaveToLibrary() {
-    if (processedCanvas) {
-      const imageData = processedCanvas.toDataURL("image/png")
-      try {
-        const libraryData = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
-        libraryData.push({ imageData, createdAt: new Date().toISOString() })
-        localStorage.setItem("imageLibrary", JSON.stringify(libraryData))
-        alert("ライブラリに保存しました")
-      } catch (error) {
-        console.error("Error saving image to library:", error)
-        alert("ライブラリの保存に失敗しました")
-      }
-    }
-  }
-
   useEffect(() => {
     drawCanvas()
   }, [drawCanvas])
@@ -312,27 +250,6 @@ function ImagePreview({
     }, 300)
   }, [isSidebarOpen])
 
-  // 移動位置とズームの初期化と中央揃え
-  useEffect(() => {
-    setZoomLevel(1)
-    if (processedCanvas && containerRef.current) {
-      const container = containerRef.current
-      const canvasWidth = processedCanvas.width // zoom is 1
-      const canvasHeight = processedCanvas.height // zoom is 1
-      const containerWidth = container.clientWidth
-      const containerHeight = container.clientHeight
-
-      const x = (containerWidth - canvasWidth) / 2
-      const y = (containerHeight - canvasHeight) / 2
-
-      setCanvasPosition({ x, y })
-      setInitialPosition({ x, y })
-    } else {
-      setCanvasPosition({ x: 0, y: 0 })
-      setInitialPosition({ x: 0, y: 0 })
-    }
-  }, [processedCanvas])
-
   return (
     <div className="preview-container">
       <h4>
@@ -341,23 +258,6 @@ function ImagePreview({
           ({processedCanvas.width / currentBlockSize}x{processedCanvas.height / currentBlockSize})
         </span>
       </h4>
-      <div className="zoom-controls">
-        <label htmlFor="zoomSelect">ズーム:</label>
-        <select id="zoomSelect" value={zoomLevel} onChange={handleZoomChange}>
-          <option value="0.5">50%</option>
-          <option value="1">100%</option>
-          <option value="2">200%</option>
-          <option value="4">400%</option>
-          <option value="8">800%</option>
-          <option value="12">1200%</option>
-        </select>
-        <button className="download-btn" onClick={downloadImage} type="button">
-          PNG ダウンロード
-        </button>
-        <button className="save-btn" onClick={handleSaveToLibrary} type="button">
-          ライブラリに保存
-        </button>
-      </div>
       <div className="canvas-container" ref={containerRef}>
         <canvas
           ref={canvasRef}
@@ -474,6 +374,9 @@ export default function Page() {
   const [selectedColors, setSelectedColors] = useState(initialColorSelectionState)
   const [mounted, setMounted] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [zoomLevel, setZoomLevel] = useState(1)
+  const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 })
+  const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 })
 
   const currentBlockSize = useRef(0)
 
@@ -557,6 +460,71 @@ export default function Page() {
     }, 100)
   }
 
+  /** ズームレベル変更時の処理 */
+  function handleZoomChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const newZoomLevel = parseFloat(e.target.value)
+
+    if (processedCanvas) {
+      const containerWidth = document.querySelector(".canvas-container")?.clientWidth || 0
+      const containerHeight = document.querySelector(".canvas-container")?.clientHeight || 0
+
+      const oldZoomLevel = zoomLevel
+
+      // ズーム前の中心点のキャンバス上の座標
+      const centerX = (containerWidth / 2 - canvasPosition.x) / oldZoomLevel
+      const centerY = (containerHeight / 2 - canvasPosition.y) / oldZoomLevel
+
+      // ズーム後の新しいキャンバス位置
+      let newX = containerWidth / 2 - centerX * newZoomLevel
+      let newY = containerHeight / 2 - centerY * newZoomLevel
+
+      const newCanvasWidth = processedCanvas.width * newZoomLevel
+      const newCanvasHeight = processedCanvas.height * newZoomLevel
+
+      // X軸の移動制限
+      if (newCanvasWidth > containerWidth) {
+        const minX = containerWidth - newCanvasWidth
+        newX = Math.max(minX, Math.min(newX, 0))
+      } else {
+        newX = (containerWidth - newCanvasWidth) / 2
+      }
+
+      // Y軸の移動制限
+      if (newCanvasHeight > containerHeight) {
+        const minY = containerHeight - newCanvasHeight
+        newY = Math.max(minY, Math.min(newY, 0))
+      } else {
+        newY = (containerHeight - newCanvasHeight) / 2
+      }
+
+      setZoomLevel(newZoomLevel)
+      setCanvasPosition({ x: newX, y: newY })
+      setInitialPosition({ x: newX, y: newY })
+    } else {
+      setZoomLevel(newZoomLevel)
+    }
+  }
+
+  // 移動位置とズームの初期化と中央揃え
+  useEffect(() => {
+    setZoomLevel(1)
+    if (processedCanvas) {
+      const containerWidth = document.querySelector(".canvas-container")?.clientWidth || 0
+      const containerHeight = document.querySelector(".canvas-container")?.clientHeight || 0
+      const canvasWidth = processedCanvas.width // zoom is 1
+      const canvasHeight = processedCanvas.height // zoom is 1
+
+      const x = (containerWidth - canvasWidth) / 2
+      const y = (containerHeight - canvasHeight) / 2
+
+      setCanvasPosition({ x, y })
+      setInitialPosition({ x, y })
+    } else {
+      setCanvasPosition({ x: 0, y: 0 })
+      setInitialPosition({ x: 0, y: 0 })
+    }
+  }, [processedCanvas])
+
   if (!mounted) return null
 
   return (
@@ -576,6 +544,11 @@ export default function Page() {
             processedCanvas={processedCanvas}
             currentBlockSize={currentBlockSize.current}
             isSidebarOpen={isSidebarOpen}
+            zoomLevel={zoomLevel}
+            canvasPosition={canvasPosition}
+            setCanvasPosition={setCanvasPosition}
+            initialPosition={initialPosition}
+            setInitialPosition={setInitialPosition}
           />
         ) : (
           <h1>Wplace Image Conversion</h1>
@@ -651,6 +624,10 @@ export default function Page() {
 
           <SelectColors selectedColors={selectedColors} setSelectedColors={setSelectedColors} />
         </div>
+
+        {processedCanvas && (
+          <SidebarActions zoomLevel={zoomLevel} handleZoomChange={handleZoomChange} processedCanvas={processedCanvas} />
+        )}
 
         <Link href="/library" className="library-link">
           ライブラリ
