@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 interface LibraryImage {
@@ -11,6 +12,7 @@ interface LibraryImage {
 export default function LibraryPage() {
   const [images, setImages] = useState<LibraryImage[]>([])
   const [mounted, setMounted] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
@@ -23,6 +25,11 @@ export default function LibraryPage() {
       setImages([])
     }
   }, [])
+
+  function handleImageSelect(imageData: string) {
+    sessionStorage.setItem("selectedImage", imageData)
+    router.push("/")
+  }
 
   if (!mounted) return null
 
@@ -50,6 +57,13 @@ export default function LibraryPage() {
               <p style={{ marginTop: "0.5rem", fontSize: "0.8rem", color: "#666" }}>
                 Saved on: {new Date(image.createdAt).toLocaleString()}
               </p>
+              <button
+                onClick={() => handleImageSelect(image.imageData)}
+                style={{ marginTop: "0.5rem", cursor: "pointer" }}
+                type="button"
+              >
+                この画像を使う
+              </button>
             </div>
           ))
         ) : (
