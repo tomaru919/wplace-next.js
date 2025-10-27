@@ -471,6 +471,21 @@ select {
   .settings-toggle {
     display: block; /* Show on mobile */
   }
+}
+
+.palette-toggle {
+  display: block;
+  background-color: #ffdd00;
+  color: #000;
+  border: 2px solid #000;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 15px;
+  font-family: "DotGothic16", sans-serif;
+  box-shadow: 4px 4px 0 #000;
 
   .settings-panel.hidden,
   .process-btn.hidden {
@@ -588,4 +603,25 @@ select {
 .delete-btn:hover {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 #000;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #2a2a2a;
+  padding: 20px;
+  border: 2px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  width: 400px;
 }

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
+import { SelectColorsModal } from "./components/SelectColorsModal"
 import { imageConversion } from "./actions/image_conversion"
 
 function ImagePreview({
@@ -388,74 +389,6 @@ function ImagePreview({
   )
 }
 
-function SelectColors({
-  selectedColors,
-  setSelectedColors,
-}: {
-  selectedColors: { [key: string]: boolean }
-  setSelectedColors: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>
-}) {
-  /** カラー選択のハンドラ */
-  function handleColorSelectionChange(colorName: string) {
-    setSelectedColors((prev) => ({
-      ...prev,
-      [colorName]: !prev[colorName],
-    }))
-  }
-
-  function selectAllColor() {
-    setSelectedColors((prev) => {
-      const state: { [key: string]: boolean } = {}
-      for (const color of Object.keys(prev)) {
-        state[color] = true
-      }
-      return state
-    })
-  }
-
-  function deselectAllColors() {
-    setSelectedColors((prev) => {
-      const state: { [key: string]: boolean } = {}
-      for (const color of Object.keys(prev)) {
-        state[color] = false
-      }
-      return state
-    })
-  }
-
-  return (
-    <div className="color-settings-container">
-      <div className="control-group color-selection">
-        <div className="color-selection-header">
-          <p>追加カラーパレット:</p>
-          <div className="color-selection-controls">
-            <button onClick={selectAllColor} type="button">
-              すべて選択
-            </button>
-            <button onClick={deselectAllColors} type="button">
-              すべて解除
-            </button>
-          </div>
-        </div>
-        <div className="color-checkboxes">
-          {SELECTABLE_COLORS.map((color) => (
-            <div className="checkbox-group" key={color.name}>
-              <input
-                type="checkbox"
-                id={`color-${color.name}`}
-                checked={selectedColors[color.name]}
-                onChange={() => handleColorSelectionChange(color.name)}
-              />
-              <span className="color-swatch" style={{ backgroundColor: color.hex }}></span>
-              <label htmlFor={`color-${color.name}`}>{color.name}</label>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function initialColorSelectionState() {
   const state: { [key: string]: boolean } = {}
   SELECTABLE_COLORS.forEach((color) => {
@@ -473,6 +406,7 @@ export default function Page() {
   const [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null)
   const [selectedColors, setSelectedColors] = useState(initialColorSelectionState)
   const [mounted, setMounted] = useState(false)
+  const [isColorPaletteOpen, setIsColorPaletteOpen] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   const currentBlockSize = useRef(0)
@@ -665,7 +599,11 @@ export default function Page() {
             </div>
           </div>
 
-          <SelectColors selectedColors={selectedColors} setSelectedColors={setSelectedColors} />
+          <div className="control-group">
+            <button type="button" className="palette-toggle" onClick={() => setIsColorPaletteOpen(true)}>
+              追加カラーパレット
+            </button>
+          </div>
         </div>
 
         <Link href="/library" className="library-link">
@@ -692,6 +630,13 @@ export default function Page() {
           <path d="M15 18l-6-6 6-6" />
         </svg>
       </button>
+      {isColorPaletteOpen && (
+        <SelectColorsModal
+          selectedColors={selectedColors}
+          setSelectedColors={setSelectedColors}
+          onClose={() => setIsColorPaletteOpen(false)}
+        />
+      )}
     </div>
   )
 }
