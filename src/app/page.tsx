@@ -211,7 +211,7 @@ function ImagePreview({
           show: !isDragging,
           x: e.pageX,
           y: e.pageY,
-          text: `(${Math.floor(pixelInfo.originalX / currentBlockSize)}, ${Math.floor(pixelInfo.originalY / currentBlockSize)})\n${colorText}`,
+          text: `(${Math.floor(pixelInfo.originalX / (currentBlockSize || 1))}, ${Math.floor(pixelInfo.originalY / (currentBlockSize || 1))})\n${colorText}`,
         })
       } else {
         setColorInfo({ show: false, x: 0, y: 0, text: "" })
