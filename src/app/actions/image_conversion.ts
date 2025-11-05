@@ -133,7 +133,7 @@ function quantizeToNearestColor(imageData: ImageData, palette: number[][]): Imag
 /**
  * Converts an image by resizing, pixelating, and applying color quantization or dithering.
  */
-export async function imageConversion(
+export default async function imageConversion(
   imageSrc: string,
   palette: number[][],
   blockSize: number,
