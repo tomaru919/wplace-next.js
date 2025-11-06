@@ -1,3 +1,4 @@
+import Link from "next/link"
 import Library from "@/app/components/library"
 
 export default function LibraryPage() {
@@ -6,6 +7,7 @@ export default function LibraryPage() {
       <div className="main-content">
         <div className="library-container">
           <h1>Wplace Image Conversion</h1>
+          <Link href="/edit">Convert the image</Link>
           <Library />
         </div>
       </div>

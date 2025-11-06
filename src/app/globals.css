@@ -227,7 +227,7 @@ input[type="checkbox"]:checked::before {
   box-shadow: 4px 4px 0 #000;
 }
 
-.library-link {
+.home-link {
   background-color: #00aaff;
   color: #000;
   border: 2px solid #000;
@@ -245,7 +245,7 @@ input[type="checkbox"]:checked::before {
   text-decoration: none;
 }
 
-.library-link:hover {
+.home-link:hover {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 #000;
 }

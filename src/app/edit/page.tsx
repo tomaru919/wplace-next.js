@@ -606,8 +606,8 @@ export default function Page() {
           </div>
         </div>
 
-        <Link href="/library" className="library-link">
-          ライブラリ
+        <Link href="/" className="home-link">
+          ホームに戻る
         </Link>
 
         <button className="process-btn" disabled={!currentImage || processing} onClick={processImage} type="button">
