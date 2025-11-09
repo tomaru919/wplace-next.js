@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
 import { SelectColorsModal } from "@/app/components/select_colors_modal"
 import imageConversion from "@/app/actions/image_conversion"
+import { ThemeToggle } from "@/app/components/theme_toggle"
 
 function ImagePreview({
   processedCanvas,
@@ -59,7 +60,7 @@ function ImagePreview({
     ctx.globalAlpha = 1
   }
 
-  /** チェッカーボード描画 */
+  /**チェッカーボード描画 */
   function drawCheckerboard(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const size = zoomLevel * 8
     const color1 = "#25292e"
@@ -606,6 +607,7 @@ export default function Page() {
           </div>
         </div>
 
+        <ThemeToggle />
         <Link href="/" className="home-link">
           ホームに戻る
         </Link>
@@ -614,6 +616,7 @@ export default function Page() {
           画像を処理
         </button>
       </div>
+
       <button className="toggle-sidebar-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} type="button">
         <svg
           xmlns="http://www.w3.org/2000/svg"
