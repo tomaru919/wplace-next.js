@@ -63,8 +63,17 @@ function ImagePreview({
   /**チェッカーボード描画 */
   function drawCheckerboard(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const size = zoomLevel * 8
-    const color1 = "#25292e"
-    const color2 = "#141414"
+
+    let color1: string
+    let color2: string
+
+    if (document.documentElement.getAttribute("data-theme") === "dark") {
+      color1 = "#25292e"
+      color2 = "#141414"
+    } else {
+      color1 = "#e6e6e6"
+      color2 = "#ffffff"
+    }
 
     for (let y = 0; y < height; y += size) {
       for (let x = 0; x < width; x += size) {

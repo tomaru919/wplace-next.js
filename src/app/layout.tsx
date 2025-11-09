@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { DotGothic16 } from "next/font/google"
-import { ThemeProvider } from "../lib/theme_provider"
+import { ThemeProvider } from "@/lib/theme_provider"
 import "./globals.css"
 
 const dotGothic = DotGothic16({
