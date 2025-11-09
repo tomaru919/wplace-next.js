@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 
 type Theme = "light" | "dark"
 
-type ThemeContextType = {
+interface ThemeContextType {
   theme: Theme
   toggleTheme: () => void
 }
