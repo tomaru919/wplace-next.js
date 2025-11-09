@@ -582,6 +582,7 @@ select {
   width: 100%;
   max-width: 1200px;
   padding: 1rem;
+  flex: 1;
 }
 
 .image-card {
@@ -594,9 +595,9 @@ select {
 }
 
 .image-card img {
+  max-height: 300px;
   width: 100%;
-  height: auto;
-  object-fit: cover;
+  object-fit: contain;
   border: 2px solid var(--border-main);
 }
 
