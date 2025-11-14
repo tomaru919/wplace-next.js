@@ -1,6 +1,13 @@
 import { headers } from "next/headers"
 import Link from "next/link"
+import type { Metadata } from "next"
 import ImageConversion from "@/app/components/image _conversion"
+
+// Page metadata
+export const metadata: Metadata = {
+  title: "Wplace Image Conversion - Edit",
+  description: "Page for converting and viewing images",
+}
 
 export default async function EditPage() {
   const userAgent = (await headers()).get("user-agent") || ""
