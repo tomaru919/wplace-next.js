@@ -7,6 +7,7 @@ export default function LibraryPage() {
     <div className="app-container">
       <div className="library-container">
         <h1>Wplace Image Conversion</h1>
+        <p>This is an image conversion tool dedicated to Wplace.</p>
         <Link href="/edit" className="home-link">
           Convert the image
         </Link>

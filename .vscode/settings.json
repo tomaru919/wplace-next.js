@@ -1,5 +1,4 @@
 {
-  "biome.lsp.bin": "/c/Users/Takuhiro/Desktop/wplace-next.js/node_modules/@biomejs/cli-win32-x64/biome.exe",
   "search.exclude": {
     "**/node_modules": true,
     "**/.next": true
