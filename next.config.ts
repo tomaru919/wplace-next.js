@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     },
   },
   allowedDevOrigins: ["mobile-pc.local"],
+  devIndicators: false,
 }
 
 export default nextConfig
