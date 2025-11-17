@@ -1,3 +1,4 @@
+// src\app\components\select_colors_modal.tsx
 import { SELECTABLE_COLORS } from "@/lib/palette"
 
 export function SelectColorsModal({

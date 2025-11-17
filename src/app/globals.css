@@ -1,3 +1,4 @@
+/* src\app\globals.css */
 @import "tailwindcss";
 
 :root {
@@ -90,10 +91,10 @@ body {
 }
 
 .sidebar {
-  width: 380px;
+  width: 360px;
   flex-shrink: 0;
   background-color: var(--sidebar-background);
-  padding: 20px;
+  padding: 16px;
   overflow-y: auto;
   border-left: 4px solid var(--border-main);
   position: relative;
@@ -106,24 +107,45 @@ body {
 h1 {
   text-align: center;
   margin-bottom: 25px;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   color: var(--primary-accent);
-  text-shadow: 4px 4px 0px var(--shadow-main);
+  text-shadow: 3px 3px 0px var(--shadow-main);
+}
+
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+}
+
+h4 {
+  font-size: 1rem;
 }
 
 .upload-area {
   border: 2px dashed var(--upload-area-border);
-  padding: 20px;
+  padding: 16px;
   text-align: center;
   cursor: pointer;
   background-color: var(--upload-area-background);
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 150px;
+  min-height: 140px;
+  transition: background-color 0.2s ease;
 }
 
 .upload-area:hover {
@@ -143,7 +165,7 @@ h1 {
 }
 
 .controls {
-  padding: 15px;
+  padding: 12px;
   background-color: var(--controls-background);
   border: 2px solid var(--border-main);
 }
@@ -151,24 +173,24 @@ h1 {
 .setting {
   display: flex;
   flex-direction: column;
-  margin-bottom: 15px;
-  gap: 15px;
+  margin-bottom: 12px;
+  gap: 12px;
 }
 
 .control-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .control-group:nth-child(1) {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 label {
   font-weight: 600;
   color: var(--text-main);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 input[type="range"] {
@@ -261,21 +283,21 @@ input[type="checkbox"]:checked::before {
   background-color: var(--process-button-background);
   color: var(--process-button-text);
   border: 2px solid var(--border-main);
-  padding: 12px 30px;
-  font-size: 1rem;
+  padding: 10px 24px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.1s ease;
-  box-shadow: 4px 4px 0 var(--shadow-main);
+  box-shadow: 3px 3px 0 var(--shadow-main);
   display: block;
   width: 100%;
-  margin: 20px auto;
+  margin: 16px auto;
   font-family: "DotGothic16", sans-serif;
 }
 
-.process-btn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--shadow-main);
+.process-btn:hover:not(:disabled) {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 var(--shadow-main);
 }
 
 .process-btn:disabled {
@@ -283,21 +305,22 @@ input[type="checkbox"]:checked::before {
   color: #aaa;
   cursor: not-allowed;
   transform: none;
-  box-shadow: 4px 4px 0 var(--shadow-main);
+  box-shadow: 3px 3px 0 var(--shadow-main);
+  opacity: 0.6;
 }
 
 .home-link {
   background-color: var(--secondary-button-background);
   color: var(--secondary-button-text);
   border: 2px solid var(--border-main);
-  padding: 12px 30px;
-  font-size: 1rem;
+  padding: 10px 24px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.1s ease;
-  box-shadow: 4px 4px 0 var(--shadow-main);
+  box-shadow: 3px 3px 0 var(--shadow-main);
   display: block;
-  margin: 20px auto;
+  margin: 12px auto;
   font-family: "DotGothic16", sans-serif;
   text-align: center;
   text-decoration: none;
@@ -308,32 +331,34 @@ input[type="checkbox"]:checked::before {
   color: var(--secondary-button-text);
   border: 2px solid var(--border-main);
   padding: 8px 16px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.1s ease;
-  box-shadow: 4px 4px 0 var(--shadow-main);
+  box-shadow: 3px 3px 0 var(--shadow-main);
   display: block;
-  margin: auto;
+  margin: 12px auto;
   font-family: "DotGothic16", sans-serif;
   text-align: center;
   text-decoration: none;
 }
 
-.home-link:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--shadow-main);
+.home-link:hover,
+.theme-toggle-btn:hover {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 var(--shadow-main);
 }
 
 .preview-container {
   min-width: 0;
   background: var(--preview-background);
   border: 2px solid var(--border-main);
-  padding: 15px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
+  gap: 8px;
 }
 
 .canvas-container {
@@ -348,11 +373,11 @@ input[type="checkbox"]:checked::before {
 .zoom-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
   padding: 8px;
   background: var(--zoom-controls-background);
   border: 2px solid var(--border-main);
+  flex-wrap: wrap;
 }
 
 select {
@@ -386,13 +411,14 @@ select {
   background: var(--secondary-button-background);
   color: var(--secondary-button-text);
   border: 2px solid var(--border-main);
-  padding: 8px 16px;
+  padding: 8px 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.1s ease;
-  box-shadow: 4px 4px 0 var(--shadow-main);
+  box-shadow: 3px 3px 0 var(--shadow-main);
   font-family: "DotGothic16", sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .save-btn {
@@ -401,8 +427,8 @@ select {
 
 .download-btn:hover,
 .save-btn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--shadow-main);
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 var(--shadow-main);
 }
 
 .processing {
@@ -450,7 +476,7 @@ select {
 }
 
 .color-settings-container {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .color-checkboxes {
@@ -510,14 +536,20 @@ select {
   background-color: var(--primary-accent);
   color: var(--secondary-button-text);
   border: 2px solid var(--border-main);
-  padding: 10px 20px;
-  font-size: 1rem;
+  padding: 10px 16px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   font-family: "DotGothic16", sans-serif;
-  box-shadow: 4px 4px 0 var(--shadow-main);
+  box-shadow: 3px 3px 0 var(--shadow-main);
+  transition: all 0.1s ease;
+}
+
+.palette-toggle:hover {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 var(--shadow-main);
 }
 
 .settings-panel.hidden,
@@ -535,10 +567,10 @@ select {
 .toggle-sidebar-btn {
   position: absolute;
   top: 50%;
-  right: 380px;
+  right: 360px;
   transform: translateY(-50%);
-  width: 30px;
-  height: 60px;
+  width: 28px;
+  height: 56px;
   background-color: var(--sidebar-background);
   border: 2px solid var(--border-main);
   border-right: none;
@@ -547,10 +579,14 @@ select {
   justify-content: center;
   align-items: center;
   color: var(--text-main);
-  border-radius: 8px 0 0 8px;
+  border-radius: 6px 0 0 6px;
   box-shadow: -2px 2px 0 var(--shadow-main);
   transition: all 0.3s ease-in-out;
   z-index: 10;
+}
+
+.toggle-sidebar-btn:hover {
+  background-color: var(--upload-area-background-hover);
 }
 
 .app-container.sidebar-closed .toggle-sidebar-btn {
@@ -624,7 +660,7 @@ select {
   transition: all 0.1s ease;
   box-shadow: 3px 3px 0 var(--shadow-main);
   font-family: "DotGothic16", sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .delete-btn {
@@ -634,8 +670,8 @@ select {
 
 .use-image-btn:hover,
 .delete-btn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--shadow-main);
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 var(--shadow-main);
 }
 
 .modal-overlay {
@@ -653,10 +689,11 @@ select {
 
 .modal-content {
   background-color: var(--modal-background);
-  padding: 20px;
+  padding: 16px;
   border: 2px solid var(--border-main);
   box-shadow: 4px 4px 0 var(--shadow-main);
   width: 400px;
+  max-width: 90vw;
 }
 
 /* モバイル対応 */
