@@ -1,7 +1,7 @@
 // src\app\edit\page.tsx
 import { headers } from "next/headers"
 import Link from "next/link"
-import ImageConversion from "@/app/components/image _conversion"
+import ImageConversion from "@/app/components/image_conversion"
 
 export default async function EditPage() {
   const userAgent = (await headers()).get("user-agent") || ""

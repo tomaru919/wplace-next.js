@@ -1,12 +1,13 @@
-// src\app\components\image _conversion.tsx
+// src\app\components\image_conversion.tsx
 "use client"
 
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
 import { SelectColorsModal } from "@/app/components/select_colors_modal"
 import imageConversion from "@/app/actions/image_conversion"
 import { ThemeToggle } from "@/app/components/theme_toggle"
+import { useTheme } from "@/lib/theme_provider"
+import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
 
 function ImagePreview({
   processedCanvas,
@@ -31,6 +32,8 @@ function ImagePreview({
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+
+  const { theme } = useTheme()
 
   /** グリッド描画 */
   function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number) {
@@ -68,7 +71,7 @@ function ImagePreview({
     let color1: string
     let color2: string
 
-    if (document.documentElement.getAttribute("data-theme") === "dark") {
+    if (theme === "dark") {
       color1 = "#25292e"
       color2 = "#141414"
     } else {
@@ -108,7 +111,7 @@ function ImagePreview({
     if (zoomLevel >= 2) {
       drawGrid(ctx, displayWidth, displayHeight)
     }
-  }, [processedCanvas, zoomLevel])
+  }, [processedCanvas, zoomLevel, theme])
 
   /** カラー情報取得 */
   function getPixelColor(x: number, y: number) {
