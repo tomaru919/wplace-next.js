@@ -596,10 +596,11 @@ select {
 
 .toggle-sidebar-btn svg {
   transition: transform 0.3s ease-in-out;
+  transform: rotate(180deg);
 }
 
 .app-container.sidebar-closed .toggle-sidebar-btn svg {
-  transform: rotate(180deg);
+  transform: rotate(0deg);
 }
 
 .library-container {
@@ -752,11 +753,11 @@ select {
   }
 
   .toggle-sidebar-btn svg {
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
   }
 
   .app-container.sidebar-closed .toggle-sidebar-btn svg {
-    transform: rotate(-90deg);
+    transform: rotate(90deg);
   }
 
   .main-content {
@@ -781,4 +782,8 @@ select {
     max-height: 80vh;
     overflow-y: auto;
   }
+}
+
+.upload-icon svg path {
+  fill: var(--text-main);
 }
