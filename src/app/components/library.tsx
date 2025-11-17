@@ -7,6 +7,9 @@ import { useEffect, useState } from "react"
 interface LibraryImage {
   imageData: string
   createdAt: string
+  width: number
+  height: number
+  blockSize: number
 }
 
 export default function Library() {
@@ -26,15 +29,24 @@ export default function Library() {
     }
   }, [])
 
-  function handleImageSelect(imageData: string) {
-    sessionStorage.setItem("selectedImage", imageData)
+  function handleImageSelect(image: LibraryImage) {
+    sessionStorage.setItem("selectedImage", image.imageData)
+    if (image.width) {
+      sessionStorage.setItem("selectedImageWidth", image.width.toString())
+    }
+    if (image.height) {
+      sessionStorage.setItem("selectedImageHeight", image.height.toString())
+    }
+    if (image.blockSize) {
+      sessionStorage.setItem("selectedImageBlockSize", image.blockSize.toString())
+    }
     router.push("/edit")
   }
 
   function handleDeleteImage(createdAt: string) {
     try {
-      const libraryData = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
-      const updatedLibrary = libraryData.filter((image: LibraryImage) => image.createdAt !== createdAt)
+      const libraryData: LibraryImage[] = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
+      const updatedLibrary = libraryData.filter((image) => image.createdAt !== createdAt)
       localStorage.setItem("imageLibrary", JSON.stringify(updatedLibrary))
       setImages(updatedLibrary)
     } catch (error) {
@@ -47,13 +59,13 @@ export default function Library() {
   return (
     <div className="image-library-grid">
       {images.length > 0 ? (
-        images.map((image: LibraryImage) => (
+        images.map((image) => (
           <div key={image.createdAt} className="image-card">
             {/* biome-ignore lint/performance/noImgElement: false positive */}
             <img src={image.imageData} alt={`create at ${image.createdAt}`} />
             <p>Saved on: {new Date(image.createdAt).toLocaleString()}</p>
             <div className="image-card-buttons">
-              <button onClick={() => handleImageSelect(image.imageData)} className="use-image-btn" type="button">
+              <button onClick={() => handleImageSelect(image)} className="use-image-btn" type="button">
                 この画像を使う
               </button>
               <button onClick={() => handleDeleteImage(image.createdAt)} className="delete-btn" type="button">

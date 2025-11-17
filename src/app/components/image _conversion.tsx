@@ -271,7 +271,13 @@ function ImagePreview({
       const imageData = processedCanvas.toDataURL("image/png")
       try {
         const libraryData = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
-        libraryData.push({ imageData, createdAt: new Date().toISOString() })
+        libraryData.push({
+          imageData,
+          createdAt: new Date().toISOString(),
+          width: processedCanvas.width,
+          height: processedCanvas.height,
+          blockSize: currentBlockSize,
+        })
         localStorage.setItem("imageLibrary", JSON.stringify(libraryData))
         alert("ライブラリに保存しました")
       } catch (error) {
@@ -430,13 +436,16 @@ export default function ImageConversion() {
       const img = new window.Image()
       img.onload = () => {
         const canvas = document.createElement("canvas")
-        canvas.width = img.width
-        canvas.height = img.height
+        const width = sessionStorage.getItem("selectedImageWidth")
+        const height = sessionStorage.getItem("selectedImageHeight")
+        const blockSize = sessionStorage.getItem("selectedImageBlockSize")
+        console.log("blockSize from sessionStorage:", blockSize)
+        currentBlockSize.current = blockSize ? parseInt(blockSize, 10) : 1
+        canvas.width = width ? parseInt(width, 10) : img.width
+        canvas.height = height ? parseInt(height, 10) : img.height
         const ctx = canvas.getContext("2d")
         ctx?.drawImage(img, 0, 0)
         setProcessedCanvas(canvas)
-        // sessionStorageから画像を削除
-        sessionStorage.removeItem("selectedImage")
       }
       img.src = imageData
     }
