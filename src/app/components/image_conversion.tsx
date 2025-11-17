@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
 import { SelectColorsModal } from "@/app/components/select_colors_modal"
 import imageConversion from "@/app/actions/image_conversion"
+import { useTheme } from "@/lib/theme_provider"
 import { ThemeToggle } from "@/app/components/theme_toggle"
 
 function ImagePreview({
@@ -16,6 +17,7 @@ function ImagePreview({
   currentBlockSize: number
   isSidebarOpen: boolean
 }) {
+  const { theme } = useTheme()
   const [zoomLevel, setZoomLevel] = useState(1)
   const [colorInfo, setColorInfo] = useState({
     show: false,
@@ -37,7 +39,7 @@ function ImagePreview({
     ctx.lineWidth = 1
     ctx.globalAlpha = 0.5
 
-    const pixelSize = currentBlockSize * zoomLevel
+    const pixelSize = (currentBlockSize || 1) * zoomLevel
 
     if (pixelSize < 4) return // グリッドが細かすぎる場合は描画しない
 
@@ -67,7 +69,7 @@ function ImagePreview({
     let color1: string
     let color2: string
 
-    if (document.documentElement.getAttribute("data-theme") === "dark") {
+    if (theme === "dark") {
       color1 = "#25292e"
       color2 = "#141414"
     } else {
@@ -107,7 +109,7 @@ function ImagePreview({
     if (zoomLevel >= 2) {
       drawGrid(ctx, displayWidth, displayHeight)
     }
-  }, [processedCanvas, zoomLevel])
+  }, [processedCanvas, zoomLevel, theme])
 
   /** カラー情報取得 */
   function getPixelColor(x: number, y: number) {

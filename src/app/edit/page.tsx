@@ -1,7 +1,7 @@
 import { headers } from "next/headers"
 import Link from "next/link"
 import type { Metadata } from "next"
-import ImageConversion from "@/app/components/image _conversion"
+import ImageConversion from "@/app/components/image_conversion"
 
 export const metadata: Metadata = {
   title: "Wplace Image Conversion - Edit",
