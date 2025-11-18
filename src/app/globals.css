@@ -580,7 +580,6 @@ select {
   align-items: center;
   color: var(--text-main);
   border-radius: 6px 0 0 6px;
-  box-shadow: -2px 2px 0 var(--shadow-main);
   transition: all 0.3s ease-in-out;
   z-index: 10;
 }
@@ -734,7 +733,7 @@ select {
   .toggle-sidebar-btn {
     position: fixed;
     top: auto;
-    bottom: calc(70vh - 40px);
+    bottom: calc(70vh - 64px);
     left: 50%;
     right: auto;
     transform: translateX(-50%);
@@ -743,7 +742,6 @@ select {
     border-radius: 8px 8px 0 0;
     border: 2px solid var(--border-main);
     border-bottom: none;
-    box-shadow: 2px -2px 0 var(--shadow-main);
     z-index: 101;
   }
 
