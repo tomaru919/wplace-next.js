@@ -114,8 +114,7 @@ h1 {
 }
 
 h2,
-h3,
-h4 {
+h3 {
   font-weight: 600;
   color: var(--text-main);
   margin-bottom: 10px;
@@ -127,10 +126,6 @@ h2 {
 
 h3 {
   font-size: 1.2rem;
-}
-
-h4 {
-  font-size: 1rem;
 }
 
 .upload-area {
@@ -391,19 +386,6 @@ select {
   color: var(--text-main);
   height: 41px;
   font-weight: 600;
-}
-
-.color-info {
-  display: none;
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 8px;
-  font-size: 14px;
-  pointer-events: none;
-  white-space: pre-wrap;
-  z-index: 100;
-  border: 2px solid #fff;
 }
 
 .download-btn,
@@ -696,6 +678,13 @@ select {
   max-width: 90vw;
 }
 
+.pixel-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80px;
+}
+
 /* モバイル対応 */
 @media (max-width: 768px) {
   body {
@@ -733,7 +722,7 @@ select {
   .toggle-sidebar-btn {
     position: fixed;
     top: auto;
-    bottom: calc(70vh - 64px);
+    bottom: 70vh;
     left: 50%;
     right: auto;
     transform: translateX(-50%);

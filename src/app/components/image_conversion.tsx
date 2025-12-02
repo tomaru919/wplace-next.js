@@ -21,8 +21,6 @@ function ImagePreview({
   const [zoomLevel, setZoomLevel] = useState(1)
   const [colorInfo, setColorInfo] = useState({
     show: false,
-    x: 0,
-    y: 0,
     text: "",
   })
   const [isDragging, setIsDragging] = useState(false)
@@ -38,8 +36,7 @@ function ImagePreview({
   /** グリッド描画 */
   function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number) {
     ctx.strokeStyle = "#000000"
-    ctx.lineWidth = 1
-    ctx.globalAlpha = 0.5
+    ctx.lineWidth = 0.2
 
     const pixelSize = currentBlockSize * zoomLevel
 
@@ -221,14 +218,13 @@ function ImagePreview({
       if (pixelInfo) {
         const colorName = COLOR_NAME_MAP[pixelInfo.color.toLowerCase()] || "Unknown Color"
         const colorText = pixelInfo.a < 255 ? "透明" : `${colorName}\n${pixelInfo.color}`
+
         setColorInfo({
           show: !isDragging,
-          x: e.pageX,
-          y: e.pageY,
           text: `(${Math.floor(pixelInfo.originalX / (currentBlockSize || 1))}, ${Math.floor(pixelInfo.originalY / (currentBlockSize || 1))})\n${colorText}`,
         })
       } else {
-        setColorInfo({ show: false, x: 0, y: 0, text: "" })
+        setColorInfo({ show: false, text: "" })
       }
     }
   }
@@ -247,7 +243,7 @@ function ImagePreview({
       setIsDragging(false)
       setInitialPosition(canvasPosition)
 
-      //showの値のみを変更して他は元々の値を使う color-info要素の表示
+      //showの値のみを変更して他は元々の値を使う（ピクセル情報はzoom-controls内に表示）
       setColorInfo((prev) => ({ ...prev, show: true }))
     }
   }
@@ -257,7 +253,7 @@ function ImagePreview({
       setIsDragging(false)
       setInitialPosition(canvasPosition)
     }
-    setColorInfo({ show: false, x: 0, y: 0, text: "" })
+    setColorInfo({ show: false, text: "" })
   }
 
   function downloadImage() {
@@ -356,12 +352,12 @@ function ImagePreview({
 
   return (
     <div className="preview-container">
-      <h4>
-        処理後画像{" "}
-        <span>
+      <div className="pixel-info">
+        <p>{!isDragging && colorInfo.show && <>{colorInfo.text}</>}</p>
+        <p>
           ({processedCanvas.width / (currentBlockSize || 1)}x{processedCanvas.height / (currentBlockSize || 1)})
-        </span>
-      </h4>
+        </p>
+      </div>
       <div className="zoom-controls">
         <label htmlFor="zoomSelect">ズーム:</label>
         <select id="zoomSelect" value={zoomLevel} onChange={handleZoomChange}>
@@ -393,18 +389,6 @@ function ImagePreview({
           onMouseLeave={handleMouseLeave}
         ></canvas>
       </div>
-      {!isDragging && colorInfo.show && (
-        <div
-          className="color-info"
-          style={{
-            display: "block",
-            left: colorInfo.x + 5,
-            top: colorInfo.y - 90,
-          }}
-        >
-          {colorInfo.text}
-        </div>
-      )}
     </div>
   )
 }
