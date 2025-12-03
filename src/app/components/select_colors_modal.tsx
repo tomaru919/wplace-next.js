@@ -5,11 +5,11 @@ export function SelectColorsModal({
   selectedColors,
   setSelectedColors,
   onClose,
-}: {
+}: Readonly<{
   selectedColors: { [key: string]: boolean }
   setSelectedColors: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>
   onClose: () => void
-}) {
+}>) {
   /** カラー選択のハンドラ */
   function handleColorSelectionChange(colorName: string) {
     setSelectedColors((prev) => ({

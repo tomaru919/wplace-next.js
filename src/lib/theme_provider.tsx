@@ -20,7 +20,7 @@ export const useTheme = () => {
   return context
 }
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export const ThemeProvider = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const [theme, setTheme] = useState<Theme>("dark")
 
   useEffect(() => {

@@ -13,11 +13,11 @@ function ImagePreview({
   processedCanvas,
   currentBlockSize,
   isSidebarOpen,
-}: {
+}: Readonly<{
   processedCanvas: HTMLCanvasElement
   currentBlockSize: number
   isSidebarOpen: boolean
-}) {
+}>) {
   const [zoomLevel, setZoomLevel] = useState(1)
   const [colorInfo, setColorInfo] = useState({
     show: false,
