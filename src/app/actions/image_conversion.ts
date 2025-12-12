@@ -140,7 +140,7 @@ export default async function imageConversion(
   blockSize: number,
   isDither: boolean,
   isNoPixelate: boolean,
-): Promise<string> {
+) {
   const imageBuffer = Buffer.from(imageSrc.split(",")[1], "base64")
   const image = sharp(imageBuffer)
   const metadata = await image.metadata()

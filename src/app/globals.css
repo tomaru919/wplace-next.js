@@ -712,10 +712,10 @@ select {
   }
 
   .app-container.sidebar-closed .sidebar {
-    transform: translateY(calc(100% - 60px));
+    transform: translateY(100%);
     width: 100%;
-    padding: 20px;
-    border-top: 4px solid var(--border-main);
+    padding: 0;
+    border-top: none;
     overflow: hidden;
   }
 
@@ -735,7 +735,7 @@ select {
   }
 
   .app-container.sidebar-closed .toggle-sidebar-btn {
-    bottom: 60px;
+    bottom: 0px;
     transform: translateX(-50%);
   }
 

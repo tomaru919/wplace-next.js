@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "next": "^15.5.7",
-    "react": "^19.1.2",
-    "react-dom": "^19.1.2",
+    "react": "^19.1.4",
+    "react-dom": "^19.1.4",
     "sharp": "^0.34.4"
   },
   "devDependencies": {
