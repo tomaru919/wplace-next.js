@@ -774,3 +774,10 @@ select {
 .upload-icon svg path {
   fill: var(--text-main);
 }
+
+.error-message {
+  color: #f44336;
+  font-weight: bold;
+  margin-top: 8px;
+  text-align: center;
+}

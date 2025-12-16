@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     serverActions: {
-      bodySizeLimit: "8mb",
+      bodySizeLimit: "4mb",
     },
   },
   allowedDevOrigins: ["mobile-pc.local"],

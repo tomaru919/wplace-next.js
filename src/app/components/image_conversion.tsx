@@ -405,8 +405,10 @@ export default function ImageConversion() {
   const [blockSize, setBlockSize] = useState(4)
   const [ditherChecked, setDitherChecked] = useState(false)
   const [noPixelateChecked, setNoPixelateChecked] = useState(false)
-  const [currentImage, setImageFile] = useState<HTMLImageElement | null>(null)
+  const [currentImage, setCurrentImage] = useState<HTMLImageElement | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [processing, setProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [processedCanvas, setProcessedCanvas] = useState<HTMLCanvasElement | null>(null)
   const [selectedColors, setSelectedColors] = useState(initialColorSelectionState)
   const [mounted, setMounted] = useState(false)
@@ -445,11 +447,21 @@ export default function ImageConversion() {
       return
     }
 
+    if (file.size > 4 * 1024 * 1024) {
+      setError("ファイルサイズは4MB以下にしてください")
+      setCurrentImage(null)
+      setSelectedFile(null)
+      return
+    }
+    setError(null)
+
+    setSelectedFile(file)
+
     const reader = new FileReader()
     reader.onload = (e) => {
       const img = new window.Image()
       img.onload = () => {
-        setImageFile(img)
+        setCurrentImage(img)
       }
       img.src = e.target?.result as string
     }
@@ -458,7 +470,7 @@ export default function ImageConversion() {
 
   /** 画像処理のメイン関数 */
   async function processImage() {
-    if (!currentImage) return
+    if (!selectedFile) return
 
     setProcessing(true)
     setProcessedCanvas(null)
@@ -481,14 +493,15 @@ export default function ImageConversion() {
 
     currentBlockSize.current = ditherChecked || noPixelateChecked ? 1 : blockSize
 
+    const formData = new FormData()
+    formData.append("image", selectedFile)
+    formData.append("palette", JSON.stringify(finalPaletteRGB))
+    formData.append("blockSize", currentBlockSize.current.toString())
+    formData.append("isDither", ditherChecked.toString())
+    formData.append("isNoPixelate", noPixelateChecked.toString())
+
     try {
-      const dataUrl = await imageConversion(
-        currentImage.src,
-        finalPaletteRGB,
-        currentBlockSize.current,
-        ditherChecked,
-        noPixelateChecked,
-      )
+      const dataUrl = await imageConversion(formData)
 
       const img = new window.Image()
       img.onload = () => {
@@ -503,7 +516,8 @@ export default function ImageConversion() {
       img.src = dataUrl
     } catch (error) {
       setProcessedCanvas(null)
-      setImageFile(null)
+      setCurrentImage(null)
+      setSelectedFile(null)
       console.error("Image processing error:", error)
       alert("画像の処理中にエラーが発生しました。")
     }
@@ -568,6 +582,7 @@ export default function ImageConversion() {
                 onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
               />
             </label>
+            {error && <p className="error-message">{error}</p>}
 
             <div className="controls">
               <div className="control-group">
@@ -615,7 +630,7 @@ export default function ImageConversion() {
           ホームに戻る
         </Link>
 
-        <button className="process-btn" disabled={!currentImage || processing} onClick={processImage} type="button">
+        <button className="process-btn" disabled={!selectedFile || processing} onClick={processImage} type="button">
           画像を処理
         </button>
       </div>

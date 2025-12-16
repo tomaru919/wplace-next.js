@@ -134,14 +134,14 @@ function quantizeToNearestColor(imageData: ImageData, palette: number[][]): Imag
 /**
  * Converts an image by resizing, pixelating, and applying color quantization or dithering.
  */
-export default async function imageConversion(
-  imageSrc: string,
-  palette: number[][],
-  blockSize: number,
-  isDither: boolean,
-  isNoPixelate: boolean,
-) {
-  const imageBuffer = Buffer.from(imageSrc.split(",")[1], "base64")
+export default async function imageConversion(formData: FormData) {
+  const imageFile = formData.get("image") as File
+  const palette = JSON.parse(formData.get("palette") as string) as number[][]
+  const blockSize = parseInt(formData.get("blockSize") as string, 10)
+  const isDither = formData.get("isDither") === "true"
+  const isNoPixelate = formData.get("isNoPixelate") === "true"
+
+  const imageBuffer = Buffer.from(await imageFile.arrayBuffer())
   const image = sharp(imageBuffer)
   const metadata = await image.metadata()
 
