@@ -1,4 +1,3 @@
-// src\app\layout.tsx
 import type { Metadata } from "next"
 import { DotGothic16 } from "next/font/google"
 import { ThemeProvider } from "@/lib/theme_provider"

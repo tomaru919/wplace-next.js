@@ -1,4 +1,3 @@
-// src\lib\palette.ts
 const PALETTE = [
   // default
   { hex: "#000000", name: "Black" },

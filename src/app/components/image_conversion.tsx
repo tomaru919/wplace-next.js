@@ -1,4 +1,3 @@
-// src\app\components\image_conversion.tsx
 "use client"
 
 import Link from "next/link"
@@ -293,7 +292,7 @@ function ImagePreview({
   // biome-ignore lint/correctness/useExhaustiveDependencies: sidebar changes should trigger recenter
   useEffect(() => {
     // HACK: sidebar animation is 300ms
-    setTimeout(() => {
+    const id = setTimeout(() => {
       if (processedCanvas && containerRef.current) {
         const container = containerRef.current
         const canvasWidth = processedCanvas.width * zoomLevel
@@ -327,6 +326,8 @@ function ImagePreview({
         setInitialPosition({ x: 0, y: 0 })
       }
     }, 300)
+
+    return () => clearTimeout(id)
   }, [isSidebarOpen])
 
   // 移動位置とズームの初期化と中央揃え
