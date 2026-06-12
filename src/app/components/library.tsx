@@ -56,26 +56,28 @@ export default function Library() {
   if (!mounted) return null
 
   return (
-    <div className="image-library-grid">
+    <>
       {images.length > 0 ? (
-        images.map((image) => (
-          <div key={image.createdAt} className="image-card">
-            {/* biome-ignore lint/performance/noImgElement: false positive */}
-            <img src={image.imageData} alt={`create at ${image.createdAt}`} />
-            <p>Saved on: {new Date(image.createdAt).toLocaleString()}</p>
-            <div className="image-card-buttons">
-              <button onClick={() => handleImageSelect(image)} className="use-image-btn" type="button">
-                この画像を使う
-              </button>
-              <button onClick={() => handleDeleteImage(image.createdAt)} className="delete-btn" type="button">
-                削除
-              </button>
+        <div className="image-library-grid">
+          {images.map((image) => (
+            <div key={image.createdAt} className="image-card">
+              {/* biome-ignore lint/performance/noImgElement: false positive */}
+              <img src={image.imageData} alt={`create at ${image.createdAt}`} />
+              <p>Saved on: {new Date(image.createdAt).toLocaleString()}</p>
+              <div className="image-card-buttons">
+                <button onClick={() => handleImageSelect(image)} className="use-image-btn" type="button">
+                  この画像を使う
+                </button>
+                <button onClick={() => handleDeleteImage(image.createdAt)} className="delete-btn" type="button">
+                  削除
+                </button>
+              </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       ) : (
         <p>Your saved images will appear here.</p>
       )}
-    </div>
+    </>
   )
 }
