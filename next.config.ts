@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "4mb",
     },
   },
-  allowedDevOrigins: ["mobile-pc.local"],
+  allowedDevOrigins: ["laptop-p1fo888u.local", "desktop-5egjmva.local"],
   devIndicators: false,
 }
 
