@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/lib/theme_provider"
 
-export function ThemeToggle() {
+export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
 
   return (

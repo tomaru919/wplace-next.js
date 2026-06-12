@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { SelectColorsModal } from "@/app/components/select_colors_modal"
 import imageConversion from "@/app/actions/image_conversion"
-import { ThemeToggle } from "@/app/components/theme_toggle"
+import ThemeToggle from "@/app/components/theme_toggle"
 import { useTheme } from "@/lib/theme_provider"
 import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
 
