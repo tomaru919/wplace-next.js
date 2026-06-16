@@ -268,7 +268,7 @@ function ImagePreview({
     if (processedCanvas) {
       const imageData = processedCanvas.toDataURL("image/png")
       try {
-        const libraryData = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
+        const libraryData: LibraryImage[] = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
         libraryData.push({
           imageData,
           createdAt: new Date().toISOString(),

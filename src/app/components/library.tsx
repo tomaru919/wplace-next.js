@@ -3,14 +3,6 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-interface LibraryImage {
-  imageData: string
-  createdAt: string
-  width: number
-  height: number
-  blockSize: number
-}
-
 export default function Library() {
   const [images, setImages] = useState<LibraryImage[]>([])
   const [mounted, setMounted] = useState(false)
@@ -20,7 +12,7 @@ export default function Library() {
     setMounted(true)
 
     try {
-      const libraryData = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
+      const libraryData: LibraryImage[] = JSON.parse(localStorage.getItem("imageLibrary") || "[]")
       setImages(libraryData)
     } catch (error) {
       console.error("Error reading from localStorage:", error)
