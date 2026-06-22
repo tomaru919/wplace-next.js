@@ -626,14 +626,14 @@ export default function ImageConversion() {
           </div>
         </div>
 
+        <button className="process-btn" disabled={!selectedFile || processing} onClick={processImage} type="button">
+          画像を処理
+        </button>
+
         <ThemeToggle />
         <Link href="/" className="home-link">
           ホームに戻る
         </Link>
-
-        <button className="process-btn" disabled={!selectedFile || processing} onClick={processImage} type="button">
-          画像を処理
-        </button>
       </div>
 
       <button className="toggle-sidebar-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} type="button">
