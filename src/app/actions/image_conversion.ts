@@ -156,7 +156,7 @@ export default async function imageConversion(formData: FormData) {
   })
 
   // Pixelate if required
-  if (!isNoPixelate) {
+  if (!isNoPixelate && blockSize > 1) {
     const smallWidth = Math.max(1, Math.floor(adjustedSize.width / blockSize))
     const smallHeight = Math.max(1, Math.floor(adjustedSize.height / blockSize))
 
@@ -178,6 +178,19 @@ export default async function imageConversion(formData: FormData) {
 
   // Make semi-transparent pixels fully transparent
   fullTransparent(imageData)
+
+  const SAMPLE_COUNT = 10
+  const pixels = Array.from({ length: Math.min(SAMPLE_COUNT, imageData.width * imageData.height) }, (_, i) => {
+    const idx = i * 4
+    const r = imageData.data[idx]
+    const g = imageData.data[idx + 1]
+    const b = imageData.data[idx + 2]
+    const a = imageData.data[idx + 3]
+    const hex = `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`
+    return { pixel: i, r, g, b, a, hex }
+  })
+  console.log(`[pixels] ${imageData.width}x${imageData.height} (先頭${SAMPLE_COUNT}px)`)
+  console.table(pixels)
 
   let processedImageData: ImageData
 

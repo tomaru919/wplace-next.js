@@ -469,10 +469,18 @@ export default function ImageConversion() {
     reader.readAsDataURL(file)
   }
 
+  function clearSelectedImageStorage() {
+    sessionStorage.removeItem("selectedImage")
+    sessionStorage.removeItem("selectedImageWidth")
+    sessionStorage.removeItem("selectedImageHeight")
+    sessionStorage.removeItem("selectedImageBlockSize")
+  }
+
   /** 画像処理のメイン関数 */
   async function processImage() {
     if (!selectedFile) return
 
+    clearSelectedImageStorage()
     setProcessing(true)
     setProcessedCanvas(null)
 
@@ -631,7 +639,7 @@ export default function ImageConversion() {
         </button>
 
         <ThemeToggle />
-        <Link href="/" className="home-link">
+        <Link href="/" className="home-link" onClick={clearSelectedImageStorage}>
           ホームに戻る
         </Link>
       </div>
