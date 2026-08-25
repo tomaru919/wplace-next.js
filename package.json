@@ -11,10 +11,10 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "next": "^15.5.9",
+    "next": "^16.3.2",
     "react": "^19.1.4",
     "react-dom": "^19.1.4",
-    "sharp": "^0.34.4"
+    "sharp": "^0.35.3"
   },
   "overrides": {
     "postcss": "^8.5.10"
@@ -31,6 +31,6 @@
   },
   "allowScripts": {
     "@tailwindcss/oxide@4.1.14": true,
-    "sharp@0.34.4": true
+    "sharp@0.35.3": true
   }
 }
