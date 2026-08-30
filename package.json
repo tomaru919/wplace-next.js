@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 4000",
-    "build": "next build",
-    "start": "next start",
-    "lint": "biome check",
-    "format": "biome format --write",
-    "prepare": "husky"
+    "dev": "bun run --bun next dev --port 4000",
+    "build": "bun run --bun next build",
+    "start": "bun run --bun next start",
+    "lint": "bun run --bun biome check",
+    "format": "bun run --bun biome format --write",
+    "prepare": "bun run --bun husky"
   },
   "dependencies": {
     "next": "^16.3.2",
@@ -22,7 +22,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/bun": "^1.4.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "husky": "^9.1.7",
@@ -32,5 +32,6 @@
   "allowScripts": {
     "@tailwindcss/oxide@4.1.14": true,
     "sharp@0.35.3": true
-  }
+  },
+  "packageManager": "bun@1.4.0"
 }
