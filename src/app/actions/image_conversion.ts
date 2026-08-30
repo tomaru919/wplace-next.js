@@ -140,6 +140,8 @@ export default async function imageConversion(formData: FormData) {
   const isDither = formData.get("isDither") === "true"
   const isNoPixelate = formData.get("isNoPixelate") === "true"
 
+  console.log("bun main thread", Bun.isMainThread)
+
   const imageBuffer = Buffer.from(await imageFile.arrayBuffer())
   const image = sharp(imageBuffer)
   const metadata = await image.metadata()
