@@ -1,9 +1,9 @@
 "use server"
 
-import sharp from "sharp"
+import { decodeRgbaPng, encodeRgbaPng } from "@/lib/rgba_png"
 
 interface ImageData {
-  data: Buffer | Uint8ClampedArray
+  data: Uint8Array | Uint8ClampedArray
   width: number
   height: number
 }
@@ -17,6 +17,55 @@ function adjustImageSize(originalWidth: number, originalHeight: number, blockSiz
   return {
     width: Math.max(adjustedWidth, blockSize),
     height: Math.max(adjustedHeight, blockSize),
+  }
+}
+
+/**
+ * アスペクト比を保ったまま target を覆う大きさに拡大縮小し、中央を切り抜く（sharp の fit: "cover" 相当）
+ * Bun.Image には切り抜き機能がないため、拡大縮小だけ Bun.Image で行い、切り抜きは RGBA 配列上で行う。
+ */
+async function resizeCover(imageBuffer: Uint8Array, targetWidth: number, targetHeight: number): Promise<ImageData> {
+  const { width: srcWidth, height: srcHeight } = await new Bun.Image(imageBuffer).metadata()
+
+  // 縦横どちらも target 以上になる倍率を選ぶ
+  const scale = Math.max(targetWidth / srcWidth, targetHeight / srcHeight)
+  const resizedWidth = Math.max(targetWidth, Math.round(srcWidth * scale))
+  const resizedHeight = Math.max(targetHeight, Math.round(srcHeight * scale))
+
+  // Bun.Image は生ピクセルを出力できないので、無圧縮 PNG を経由して RGBA 配列に戻す
+  const png = await new Bun.Image(imageBuffer).resize(resizedWidth, resizedHeight).png({ compressionLevel: 0 }).bytes()
+  const resized = decodeRgbaPng(png)
+
+  const left = Math.floor((resized.width - targetWidth) / 2)
+  const top = Math.floor((resized.height - targetHeight) / 2)
+  const cropped = new Uint8Array(targetWidth * targetHeight * 4)
+  for (let y = 0; y < targetHeight; y++) {
+    const srcStart = ((top + y) * resized.width + left) * 4
+    cropped.set(resized.data.subarray(srcStart, srcStart + targetWidth * 4), y * targetWidth * 4)
+  }
+
+  return { data: cropped, width: targetWidth, height: targetHeight }
+}
+
+/**
+ * ブロックごとに中央のピクセル色で塗りつぶしてドット絵風にする
+ * （sharp で「nearest で縮小 → nearest で拡大」していた処理と同じ効果）
+ */
+function pixelate(imageData: ImageData, blockSize: number) {
+  const { data, width, height } = imageData
+  const half = Math.floor(blockSize / 2)
+
+  for (let by = 0; by < height; by += blockSize) {
+    for (let bx = 0; bx < width; bx += blockSize) {
+      const sampleIdx = ((by + half) * width + (bx + half)) * 4
+      const color = data.slice(sampleIdx, sampleIdx + 4)
+
+      for (let y = by; y < by + blockSize; y++) {
+        for (let x = bx; x < bx + blockSize; x++) {
+          data.set(color, (y * width + x) * 4)
+        }
+      }
+    }
   }
 }
 
@@ -140,40 +189,18 @@ export default async function imageConversion(formData: FormData) {
   const isDither = formData.get("isDither") === "true"
   const isNoPixelate = formData.get("isNoPixelate") === "true"
 
-  const imageBuffer = Buffer.from(await imageFile.arrayBuffer())
-  const image = sharp(imageBuffer)
-  const metadata = await image.metadata()
-
-  const originalWidth = metadata.width || 0
-  const originalHeight = metadata.height || 0
+  const imageBuffer = new Uint8Array(await imageFile.arrayBuffer())
+  const { width: originalWidth, height: originalHeight } = await new Bun.Image(imageBuffer).metadata()
 
   // Adjust image size to be divisible by the block size
   const adjustedSize = adjustImageSize(originalWidth, originalHeight, blockSize)
 
-  let sharpInstance = image.resize(adjustedSize.width, adjustedSize.height, {
-    fit: "cover",
-    position: "center",
-  })
+  // Resize (cover, centered) and get RGBA pixels
+  const imageData = await resizeCover(imageBuffer, adjustedSize.width, adjustedSize.height)
 
   // Pixelate if required
   if (!isNoPixelate && blockSize > 1) {
-    const smallWidth = Math.max(1, Math.floor(adjustedSize.width / blockSize))
-    const smallHeight = Math.max(1, Math.floor(adjustedSize.height / blockSize))
-
-    // Resize down and get an intermediate buffer to break the optimization chain
-    const smallImageBuffer = await sharpInstance.resize(smallWidth, smallHeight, { kernel: "nearest" }).toBuffer()
-
-    // Create a new sharp instance from the small buffer and resize back up
-    sharpInstance = sharp(smallImageBuffer).resize(adjustedSize.width, adjustedSize.height, { kernel: "nearest" })
-  }
-
-  // Get image data for quantization/dithering
-  const { data, info } = await sharpInstance.ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-
-  const imageData: ImageData = {
-    data,
-    width: info.width,
-    height: info.height,
+    pixelate(imageData, blockSize)
   }
 
   // Make semi-transparent pixels fully transparent
@@ -187,15 +214,7 @@ export default async function imageConversion(formData: FormData) {
     processedImageData = quantizeToNearestColor(imageData, palette)
   }
 
-  const finalImageBuffer = await sharp(processedImageData.data, {
-    raw: {
-      width: processedImageData.width,
-      height: processedImageData.height,
-      channels: 4,
-    },
-  })
-    .png()
-    .toBuffer()
+  const finalImageBuffer = encodeRgbaPng(processedImageData)
 
   return `data:image/png;base64,${finalImageBuffer.toString("base64")}`
 }
