@@ -20,6 +20,9 @@
 # production
 /build
 
+# rust (wasm)
+/wasm/target
+
 # misc
 .DS_Store
 *.pem

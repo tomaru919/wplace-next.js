@@ -3,9 +3,9 @@
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { SelectColorsModal } from "@/app/components/select_colors_modal"
-import imageConversion from "@/app/actions/image_conversion"
 import ThemeToggle from "@/app/components/theme_toggle"
 import { useTheme } from "@/lib/theme_provider"
+import { convertImage } from "@/lib/image_conversion"
 import { COLOR_NAME_MAP, DEFAULT_COLORS, SELECTABLE_COLORS } from "@/lib/palette"
 
 function ImagePreview({
@@ -502,27 +502,17 @@ export default function ImageConversion() {
 
     currentBlockSize.current = ditherChecked || noPixelateChecked ? 1 : blockSize
 
-    const formData = new FormData()
-    formData.append("image", selectedFile)
-    formData.append("palette", JSON.stringify(finalPaletteRGB))
-    formData.append("blockSize", currentBlockSize.current.toString())
-    formData.append("isDither", ditherChecked.toString())
-    formData.append("isNoPixelate", noPixelateChecked.toString())
-
     try {
-      const dataUrl = await imageConversion(formData)
+      // 変換処理はメインスレッドで同期的に動くため、先に「処理中...」を画面に描画させる
+      await new Promise((resolve) => setTimeout(resolve, 0))
 
-      const img = new window.Image()
-      img.onload = () => {
-        const canvas = document.createElement("canvas")
-        canvas.width = img.width
-        canvas.height = img.height
-        const ctx = canvas.getContext("2d")
-        ctx?.drawImage(img, 0, 0)
-
-        setProcessedCanvas(canvas)
-      }
-      img.src = dataUrl
+      const canvas = await convertImage(selectedFile, {
+        palette: finalPaletteRGB,
+        blockSize: currentBlockSize.current,
+        isDither: ditherChecked,
+        isNoPixelate: noPixelateChecked,
+      })
+      setProcessedCanvas(canvas)
     } catch (error) {
       setProcessedCanvas(null)
       setCurrentImage(null)

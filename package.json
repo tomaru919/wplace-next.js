@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "bun run --bun next dev --port 4000",
     "build": "bun run --bun next build",
+    "build:wasm": "bun scripts/build_wasm.ts",
     "start": "bun run --bun next start",
     "lint": "bun run --bun biome check",
     "format": "bun run --bun biome format --write",
